@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader } from 'lucide-react';
+import { ticketService } from '../lib/supabase';
 
 export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   const [form, setForm] = useState({
@@ -8,14 +9,14 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
     type: 'Bug',
     platform: 'iOS',
     status: 'Testing',
-    jiraLink: '',
-    testCaseCount: 0,
-    testRunCount: 0,
-    qaFailedCount: 0,
-    updatedAt: new Date().toISOString()
+    jira_link: '',
+    test_case_count: 0,
+    test_run_count: 0,
+    qa_failed_count: 0
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
@@ -28,16 +29,41 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
     const newErrors = {};
     if (!form.id.trim()) newErrors.id = 'Jira Key is required';
     if (!form.name.trim()) newErrors.name = 'Ticket Name is required';
-    if (!form.jiraLink.trim()) newErrors.jiraLink = 'Jira Link is required';
+    if (!form.jira_link.trim()) newErrors.jira_link = 'Jira Link is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onAdd(form);
-    } else {
+  const handleSubmit = async () => {
+    if (!validateForm()) {
       onShowToast('Please fill in all required fields', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Check for duplicate ticket ID
+      const existing = await ticketService.getById(form.id);
+      if (existing) {
+        setErrors({ id: 'Ticket with this Jira Key already exists' });
+        onShowToast('Ticket already exists', 'error');
+        setLoading(false);
+        return;
+      }
+
+      // Create ticket
+      const newTicket = await ticketService.create({
+        ...form,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+      onAdd(newTicket);
+      onShowToast('Ticket added successfully', 'success');
+    } catch (err) {
+      onShowToast('Error adding ticket: ' + err.message, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,19 +78,18 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
         </div>
 
         <div className="form-group">
-          <label>Jira Key *</label>
+          <label>Jira Key * {errors.id && <span style={{ color: '#c62828' }}>({errors.id})</span>}</label>
           <input
             type="text"
             value={form.id}
-            onChange={(e) => handleChange('id', e.target.value)}
+            onChange={(e) => handleChange('id', e.target.value.toUpperCase())}
             placeholder="e.g., FLOWDEL-3050"
             style={errors.id ? { borderColor: '#c62828' } : {}}
           />
-          {errors.id && <div style={{ color: '#c62828', fontSize: '12px', marginTop: '4px' }}>{errors.id}</div>}
         </div>
 
         <div className="form-group">
-          <label>Ticket Name *</label>
+          <label>Ticket Name * {errors.name && <span style={{ color: '#c62828' }}>({errors.name})</span>}</label>
           <input
             type="text"
             value={form.name}
@@ -72,7 +97,6 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
             placeholder="e.g., Fix database connection timeout"
             style={errors.name ? { borderColor: '#c62828' } : {}}
           />
-          {errors.name && <div style={{ color: '#c62828', fontSize: '12px', marginTop: '4px' }}>{errors.name}</div>}
         </div>
 
         <div className="form-row">
@@ -108,24 +132,24 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
             </select>
           </div>
           <div className="form-group">
-            <label>Jira Link *</label>
+            <label>Jira Link * {errors.jira_link && <span style={{ color: '#c62828' }}>({errors.jira_link})</span>}</label>
             <input
               type="url"
-              value={form.jiraLink}
-              onChange={(e) => handleChange('jiraLink', e.target.value)}
+              value={form.jira_link}
+              onChange={(e) => handleChange('jira_link', e.target.value)}
               placeholder="https://jira.company.com/browse/FLOWDEL-3050"
-              style={errors.jiraLink ? { borderColor: '#c62828' } : {}}
+              style={errors.jira_link ? { borderColor: '#c62828' } : {}}
             />
-            {errors.jiraLink && <div style={{ color: '#c62828', fontSize: '12px', marginTop: '4px' }}>{errors.jiraLink}</div>}
           </div>
         </div>
 
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+          <button className="btn btn-secondary" onClick={onClose} disabled={loading}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleSubmit}>
-            Add Ticket
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
+            {loading && <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />}
+            {loading ? 'Adding...' : 'Add Ticket'}
           </button>
         </div>
       </div>

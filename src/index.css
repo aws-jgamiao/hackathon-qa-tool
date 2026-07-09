@@ -535,3 +535,13 @@ tbody tr:hover {
 .toast.error {
   border-left: 4px solid #c62828;
 }
+
+/* Loading spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

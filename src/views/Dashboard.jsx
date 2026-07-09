@@ -1,17 +1,38 @@
-import { useState, useRef } from 'react';
-import { Search, Plus, MoreVertical } from 'lucide-react';
-import { mockTickets } from '../mockData';
+import { useState, useRef, useEffect } from 'react';
+import { Search, Plus, MoreVertical, Loader } from 'lucide-react';
 import ActionMenu from '../components/ActionMenu';
 import AddTicketModal from '../components/AddTicketModal';
 import { formatDate } from '../utils/dateUtils';
+import { ticketService } from '../lib/supabase';
 
 export default function Dashboard({ onSelectTicket, onShowToast }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showAddTicket, setShowAddTicket] = useState(false);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const menuRefs = useRef({});
 
-  const filteredTickets = mockTickets.filter(ticket =>
+  useEffect(() => {
+    loadTickets();
+  }, []);
+
+  const loadTickets = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await ticketService.getAll();
+      setTickets(data);
+    } catch (err) {
+      setError(err.message);
+      onShowToast('Failed to load tickets: ' + err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTickets = tickets.filter(ticket =>
     ticket.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     ticket.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -50,6 +71,32 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
     setOpenMenuId(null);
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Loader size={32} style={{ animation: 'spin 1s linear infinite', margin: '0 auto', marginBottom: '16px' }} />
+          <p>Loading tickets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card" style={{ background: '#ffebee', borderColor: '#c62828' }}>
+        <h2 style={{ color: '#c62828' }}>Error Loading Tickets</h2>
+        <p>{error}</p>
+        <p style={{ fontSize: '14px', color: '#666', marginTop: '12px' }}>
+          Make sure you have set up your Supabase database. See DATABASE_SETUP.md for instructions.
+        </p>
+        <button className="btn btn-primary" onClick={loadTickets} style={{ marginTop: '12px' }}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="action-row">
@@ -64,8 +111,9 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
         <AddTicketModal
           onClose={() => setShowAddTicket(false)}
           onAdd={(ticket) => {
-            onShowToast('Ticket added successfully', 'success');
+            setTickets([ticket, ...tickets]);
             setShowAddTicket(false);
+            loadTickets();
           }}
           onShowToast={onShowToast}
         />
