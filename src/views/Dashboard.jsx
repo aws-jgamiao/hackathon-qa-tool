@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Loader } from 'lucide-react';
+import { Search, Plus, MoreVertical, Loader, Trash2 } from 'lucide-react';
 import ActionMenu from '../components/ActionMenu';
 import AddTicketModal from '../components/AddTicketModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { formatDate } from '../utils/dateUtils';
 import { ticketService } from '../lib/supabase';
 
@@ -12,6 +13,8 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ticketToDelete, setTicketToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const menuRefs = useRef({});
 
   useEffect(() => {
@@ -53,7 +56,8 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
   const ticketActions = [
     { label: 'View Ticket', icon: '👁️' },
     { label: 'Edit Ticket', icon: '✏️' },
-    { label: 'Export', icon: '📥' }
+    { label: 'Export', icon: '📥' },
+    { label: 'Delete Ticket', icon: '🗑️', danger: true }
   ];
 
   const handleAction = (action, ticket) => {
@@ -67,8 +71,27 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
       case 'Export':
         onShowToast('Exporting ticket...', 'success');
         break;
+      case 'Delete Ticket':
+        setTicketToDelete(ticket);
+        break;
     }
     setOpenMenuId(null);
+  };
+
+  const handleDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+
+    setDeleting(true);
+    try {
+      await ticketService.delete(ticketToDelete.id);
+      setTickets(tickets.filter(t => t.id !== ticketToDelete.id));
+      setTicketToDelete(null);
+      onShowToast(`Ticket ${ticketToDelete.id} deleted successfully`, 'success');
+    } catch (err) {
+      onShowToast('Failed to delete ticket: ' + err.message, 'error');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -99,6 +122,18 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
 
   return (
     <div>
+      {ticketToDelete && (
+        <ConfirmDialog
+          title="Delete Ticket"
+          message={`Are you sure you want to delete ticket ${ticketToDelete.id}? This action cannot be undone and will delete all associated test cases and test runs.`}
+          confirmText="Delete Ticket"
+          cancelText="Cancel"
+          isDangerous={true}
+          onConfirm={handleDeleteTicket}
+          onCancel={() => setTicketToDelete(null)}
+        />
+      )}
+
       <div className="action-row">
         <h1>Jira Ticket Dashboard</h1>
         <button className="btn btn-primary" onClick={() => setShowAddTicket(true)}>
