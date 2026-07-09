@@ -62,7 +62,7 @@ Return ONLY a valid JSON array (no markdown, no extra text) with this structure:
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-1-20250805',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 4096,
         messages: [
           {
