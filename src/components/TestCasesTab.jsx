@@ -90,6 +90,8 @@ export default function TestCasesTab({
           <GenerateTestCasesModal
             ticket={ticket}
             onClose={() => setShowGenerateModal(false)}
+            onAddTestCases={(cases) => setTestCases([...testCases, ...cases])}
+            onShowToast={onShowToast}
           />
         )}
         <div className="card">
@@ -129,6 +131,8 @@ export default function TestCasesTab({
         <GenerateTestCasesModal
           ticket={ticket}
           onClose={() => setShowGenerateModal(false)}
+          onAddTestCases={(cases) => setTestCases([...testCases, ...cases])}
+          onShowToast={onShowToast}
         />
       )}
       <div className="action-row">
@@ -187,7 +191,7 @@ export default function TestCasesTab({
                 </td>
                 <td>{formatDate(testCase.updatedAt)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
-                  <div className="relative">
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
                     <button
                       ref={(el) => { menuRefs.current[testCase.id] = el; }}
                       className="btn-icon"

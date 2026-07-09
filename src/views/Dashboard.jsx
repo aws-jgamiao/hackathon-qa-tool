@@ -207,7 +207,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                 </td>
                 <td>{formatDate(ticket.updated_at)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
-                  <div className="relative">
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
                     <button
                       ref={(el) => { menuRefs.current[ticket.id] = el; }}
                       className="btn-icon"
