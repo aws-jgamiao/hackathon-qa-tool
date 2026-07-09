@@ -61,11 +61,15 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
 
       // Generate and save test cases
       onShowToast('Generating test cases with AI...', 'info');
+      console.log('📋 Starting test case generation for ticket:', newTicket.id);
       try {
         const generatedCases = await generateTestCases(newTicket);
+        console.log(`💾 Saving ${generatedCases.length} test cases to database...`);
 
         // Save test cases to database
-        for (const testCase of generatedCases) {
+        for (let i = 0; i < generatedCases.length; i++) {
+          const testCase = generatedCases[i];
+          console.log(`[${i + 1}/${generatedCases.length}] Saving: ${testCase.title}`);
           await testCaseService.create({
             ticket_id: newTicket.id,
             title: testCase.title,
@@ -81,8 +85,10 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
           });
         }
 
+        console.log(`✅ All ${generatedCases.length} test cases saved successfully!`);
         onShowToast(`Ticket created with ${generatedCases.length} test cases`, 'success');
       } catch (genErr) {
+        console.error('⚠️ Test case generation error:', genErr);
         onShowToast(`Ticket created, but test case generation failed: ${genErr.message}`, 'warning');
       }
 

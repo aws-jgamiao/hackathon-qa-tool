@@ -94,11 +94,11 @@ export default function ViewTestCase({
           </div>
           <div className="detail-item">
             <div className="detail-label">Created At</div>
-            <div className="detail-value">{formatDate(testCase.createdAt)}</div>
+            <div className="detail-value">{formatDate(testCase.created_at)}</div>
           </div>
           <div className="detail-item">
             <div className="detail-label">Updated At</div>
-            <div className="detail-value">{formatDate(testCase.updatedAt)}</div>
+            <div className="detail-value">{formatDate(testCase.updated_at)}</div>
           </div>
           {testCase.approvedBy && (
             <>
@@ -108,7 +108,7 @@ export default function ViewTestCase({
               </div>
               <div className="detail-item">
                 <div className="detail-label">Approved At</div>
-                <div className="detail-value">{formatDate(testCase.approvedAt)}</div>
+                <div className="detail-value">{formatDate(testCase.approved_at)}</div>
               </div>
             </>
           )}

@@ -151,7 +151,7 @@ export default function TestCasesTab({
                     {testCase.status}
                   </span>
                 </td>
-                <td>{formatDate(testCase.updatedAt)}</td>
+                <td>{formatDate(testCase.updated_at)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <button

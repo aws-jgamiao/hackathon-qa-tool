@@ -6,6 +6,8 @@ export async function generateTestCases(ticket) {
     throw new Error('Claude API key not configured. Add VITE_ANTHROPIC_API_KEY to .env');
   }
 
+  console.log('🤖 Starting test case generation for ticket:', ticket.id);
+
   const prompt = `You are a QA test case generator for mobile applications. Generate comprehensive test cases for the following Jira ticket.
 
 Ticket: ${ticket.id}
@@ -34,6 +36,7 @@ Return ONLY a valid JSON array (no markdown, no extra text) with this structure:
 ]`;
 
   try {
+    console.log('📡 Calling Claude API...');
     const response = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
       headers: {
@@ -55,10 +58,12 @@ Return ONLY a valid JSON array (no markdown, no extra text) with this structure:
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('❌ Claude API error response:', error);
       throw new Error(`Claude API error: ${error.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
+    console.log('✅ API response received');
     const content = data.content[0].text;
 
     // Extract JSON from response (handle potential markdown wrapping)
@@ -69,9 +74,10 @@ Return ONLY a valid JSON array (no markdown, no extra text) with this structure:
     }
 
     const testCases = JSON.parse(jsonStr);
+    console.log(`✨ Generated ${testCases.length} test cases:`, testCases);
 
     // Add IDs and metadata
-    return testCases.map((tc, index) => ({
+    const enrichedCases = testCases.map((tc, index) => ({
       id: `TC-${Date.now()}-${index}`,
       ...tc,
       status: 'Draft',
@@ -80,8 +86,11 @@ Return ONLY a valid JSON array (no markdown, no extra text) with this structure:
       approvedBy: null,
       approvedAt: null
     }));
+
+    console.log('🎉 Test cases ready for database:', enrichedCases);
+    return enrichedCases;
   } catch (error) {
-    console.error('Error generating test cases:', error);
+    console.error('❌ Error generating test cases:', error);
     throw error;
   }
 }

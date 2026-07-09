@@ -78,7 +78,7 @@ export default function TicketHeader({ ticket }) {
         </div>
         <div className="detail-item">
           <div className="detail-label">Updated At</div>
-          <div className="detail-value">{formatDate(ticket.updatedAt)}</div>
+          <div className="detail-value">{formatDate(ticket.updated_at)}</div>
         </div>
       </div>
     </div>
