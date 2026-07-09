@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Plus, MoreVertical, Copy, Check, FileText, Trash2 } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import ActionMenu from './ActionMenu';
@@ -12,6 +12,7 @@ export default function TestCasesTab({
   setCurrentView
 }) {
   const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
 
   const hasTestCases = testCases && testCases.length > 0;
 
@@ -50,17 +51,8 @@ export default function TestCasesTab({
         onShowToast('Test case duplicated', 'success');
         break;
       case 'Approve Test Case':
-        const approved = {
-          ...testCase,
-          status: 'Approved',
-          approvedBy: 'Current User',
-          approvedAt: new Date().toISOString()
-        };
-        const idx = testCases.findIndex(tc => tc.id === testCase.id);
-        const updated = [...testCases];
-        updated[idx] = approved;
-        setTestCases(updated);
-        onShowToast('Test case approved and test run created', 'success');
+        // This is handled in the detail view, so just notify
+        onShowToast('Please use the detail view to approve test cases', 'info');
         break;
       case 'Export to PDF':
         onShowToast('Exporting to PDF...', 'success');
@@ -163,6 +155,7 @@ export default function TestCasesTab({
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="relative">
                     <button
+                      ref={(el) => { menuRefs.current[testCase.id] = el; }}
                       className="btn-icon"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -175,6 +168,7 @@ export default function TestCasesTab({
                       <ActionMenu
                         actions={actions}
                         onAction={(action) => handleAction(action, testCase)}
+                        triggerRef={menuRefs.current[testCase.id]}
                       />
                     )}
                   </div>

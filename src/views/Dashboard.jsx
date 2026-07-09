@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Search, Plus, MoreVertical } from 'lucide-react';
 import { mockTickets } from '../mockData';
 import ActionMenu from '../components/ActionMenu';
+import AddTicketModal from '../components/AddTicketModal';
 import { formatDate } from '../utils/dateUtils';
 
 export default function Dashboard({ onSelectTicket, onShowToast }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [showAddTicket, setShowAddTicket] = useState(false);
+  const menuRefs = useRef({});
 
   const filteredTickets = mockTickets.filter(ticket =>
     ticket.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,11 +54,22 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
     <div>
       <div className="action-row">
         <h1>Jira Ticket Dashboard</h1>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary" onClick={() => setShowAddTicket(true)}>
           <Plus size={18} />
           Add Ticket
         </button>
       </div>
+
+      {showAddTicket && (
+        <AddTicketModal
+          onClose={() => setShowAddTicket(false)}
+          onAdd={(ticket) => {
+            onShowToast('Ticket added successfully', 'success');
+            setShowAddTicket(false);
+          }}
+          onShowToast={onShowToast}
+        />
+      )}
 
       <div className="search-bar">
         <input
@@ -112,6 +126,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="relative">
                     <button
+                      ref={(el) => { menuRefs.current[ticket.id] = el; }}
                       className="btn-icon"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -124,6 +139,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                       <ActionMenu
                         actions={ticketActions}
                         onAction={(action) => handleAction(action, ticket)}
+                        triggerRef={menuRefs.current[ticket.id]}
                       />
                     )}
                   </div>

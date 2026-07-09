@@ -8,7 +8,8 @@ export const mockTickets = [
     testCaseCount: 3,
     testRunCount: 2,
     qaFailedCount: 1,
-    updatedAt: '2024-01-18T10:30:00Z'
+    updatedAt: '2024-01-18T10:30:00Z',
+    jiraLink: 'https://jira.company.com/browse/FLOWDEL-2686'
   },
   {
     id: 'FLOWDEL-2929',
@@ -19,7 +20,8 @@ export const mockTickets = [
     testCaseCount: 4,
     testRunCount: 3,
     qaFailedCount: 2,
-    updatedAt: '2024-01-17T14:15:00Z'
+    updatedAt: '2024-01-17T14:15:00Z',
+    jiraLink: 'https://jira.company.com/browse/FLOWDEL-2929'
   },
   {
     id: 'FLOWDEL-3010',
@@ -30,7 +32,8 @@ export const mockTickets = [
     testCaseCount: 5,
     testRunCount: 1,
     qaFailedCount: 0,
-    updatedAt: '2024-01-19T09:45:00Z'
+    updatedAt: '2024-01-19T09:45:00Z',
+    jiraLink: 'https://jira.company.com/browse/FLOWDEL-3010'
   }
 ];
 

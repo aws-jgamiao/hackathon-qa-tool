@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import ActionMenu from './ActionMenu';
@@ -11,6 +11,7 @@ export default function TestRunsTab({
   setCurrentView
 }) {
   const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
@@ -133,6 +134,7 @@ export default function TestRunsTab({
               <td onClick={(e) => e.stopPropagation()}>
                 <div className="relative">
                   <button
+                    ref={(el) => { menuRefs.current[testRun.id] = el; }}
                     className="btn-icon"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -145,6 +147,7 @@ export default function TestRunsTab({
                     <ActionMenu
                       actions={actions}
                       onAction={(action) => handleAction(action, testRun)}
+                      triggerRef={menuRefs.current[testRun.id]}
                     />
                   )}
                 </div>

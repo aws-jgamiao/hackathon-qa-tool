@@ -35,6 +35,7 @@ export default function ViewTestCase({
         approvedBy: 'Current User',
         approvedAt: new Date().toISOString()
       };
+      // The ticket platform handling is done in the parent component
       onApprove(approved);
     }
   };

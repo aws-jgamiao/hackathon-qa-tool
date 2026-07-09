@@ -140,25 +140,31 @@ export default function TicketWorkspace({
                 newCases[idx] = approved;
                 setTestCases(newCases);
 
-                // Create test run automatically
-                const newRun = {
-                  id: `RUN-${Math.floor(Math.random() * 10000)}`,
-                  testCaseId: approved.id,
-                  testCaseTitle: approved.title,
-                  platform: ticket.platform,
-                  version: 'V1',
-                  status: 'Not Run',
-                  qaFailedCount: 0,
-                  executedBy: 'Current User',
-                  executedAt: new Date().toISOString(),
-                  actualResults: [],
-                  steps: []
-                };
-                const newRuns = [...testRuns, newRun];
+                // Create test runs for each platform
+                const platforms = ticket.platform.split(',').map(p => p.trim());
+                const newRuns = [...testRuns];
+
+                platforms.forEach((platform) => {
+                  const newRun = {
+                    id: `RUN-${Math.floor(Math.random() * 10000)}`,
+                    testCaseId: approved.id,
+                    testCaseTitle: approved.title,
+                    platform: platform,
+                    version: 'V1',
+                    status: 'Not Run',
+                    qaFailedCount: 0,
+                    executedBy: 'Current User',
+                    executedAt: new Date().toISOString(),
+                    actualResults: [],
+                    steps: []
+                  };
+                  newRuns.push(newRun);
+                });
+
                 setTestRuns(newRuns);
               }
               setSelectedTestCase(approved);
-              onShowToast('Test case approved and test run created', 'success');
+              onShowToast('Test case approved and test runs created', 'success');
             }}
             onDelete={() => {
               const newCases = testCases.filter(tc => tc.id !== selectedTestCase.id);

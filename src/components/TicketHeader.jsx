@@ -24,10 +24,23 @@ export default function TicketHeader({ ticket }) {
             {ticket.name}
           </p>
         </div>
-        <button className="btn btn-secondary">
-          <ExternalLink size={16} />
-          View in Jira
-        </button>
+        {ticket.jiraLink ? (
+          <a
+            href={ticket.jiraLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary"
+            style={{ textDecoration: 'none' }}
+          >
+            <ExternalLink size={16} />
+            View in Jira
+          </a>
+        ) : (
+          <button className="btn btn-secondary" disabled style={{ opacity: 0.5 }}>
+            <ExternalLink size={16} />
+            No Jira Link
+          </button>
+        )}
       </div>
 
       <div className="details-grid">
