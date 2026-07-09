@@ -9,7 +9,23 @@ export default function AddEditTestCase({
   onShowToast
 }) {
   const [form, setForm] = useState(
-    testCase || {
+    testCase ? {
+      id: testCase.id,
+      title: testCase.title || '',
+      component: testCase.component || '',
+      description: testCase.description || '',
+      preConditions: testCase.pre_conditions || '',
+      testSteps: typeof testCase.test_steps === 'string' ? testCase.test_steps.split('\n') : (testCase.testSteps || []),
+      expectedResult: testCase.expected_result || '',
+      platform: testCase.platform || ticket.platform,
+      status: testCase.status === 'Approved' ? 'Approved' : 'Pending',
+      customTables: testCase.custom_tables || [],
+      createdBy: testCase.created_by || 'Current User',
+      createdAt: testCase.created_at || new Date().toISOString(),
+      updatedAt: testCase.updated_at || new Date().toISOString(),
+      approvedBy: testCase.approved_by || null,
+      approvedAt: testCase.approved_at || null
+    } : {
       id: `TC-${Math.floor(Math.random() * 10000)}`,
       title: '',
       component: '',
@@ -18,7 +34,7 @@ export default function AddEditTestCase({
       testSteps: [],
       expectedResult: '',
       platform: ticket.platform,
-      status: 'Draft',
+      status: 'Pending',
       customTables: [],
       createdBy: 'Current User',
       createdAt: new Date().toISOString(),
@@ -131,9 +147,21 @@ export default function AddEditTestCase({
     }
 
     const updated = {
-      ...form,
-      status,
-      updatedAt: new Date().toISOString()
+      id: form.id,
+      title: form.title,
+      component: form.component,
+      description: form.description,
+      pre_conditions: form.preConditions,
+      test_steps: form.testSteps.join('\n'),
+      expected_result: form.expectedResult,
+      platform: form.platform,
+      status: status,
+      custom_tables: form.customTables,
+      created_by: form.createdBy,
+      created_at: form.createdAt,
+      updated_at: new Date().toISOString(),
+      approved_by: form.approvedBy,
+      approved_at: form.approvedAt
     };
 
     onSave(updated);
@@ -146,11 +174,21 @@ export default function AddEditTestCase({
     }
 
     const approved = {
-      ...form,
+      id: form.id,
+      title: form.title,
+      component: form.component,
+      description: form.description,
+      pre_conditions: form.preConditions,
+      test_steps: form.testSteps.join('\n'),
+      expected_result: form.expectedResult,
+      platform: form.platform,
       status: 'Approved',
-      approvedBy: 'Current User',
-      approvedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      custom_tables: form.customTables,
+      created_by: form.createdBy,
+      created_at: form.createdAt,
+      updated_at: new Date().toISOString(),
+      approved_by: 'Current User',
+      approved_at: new Date().toISOString()
     };
 
     onSave(approved);
@@ -162,7 +200,7 @@ export default function AddEditTestCase({
 
       <div className="form-row">
         <div className="form-group">
-          <label>Jira Key</label>
+          <label>Jira Ticket</label>
           <input
             type="text"
             value={ticket.id}
@@ -279,19 +317,28 @@ export default function AddEditTestCase({
       <div className="form-row">
         <div className="form-group">
           <label>Platform</label>
-          <input type="text" value={form.platform} readOnly style={{ backgroundColor: '#f5f5f5' }} />
-        </div>
-        <div className="form-group">
-          <label>Status</label>
           <select
-            value={form.status}
-            onChange={(e) => handleFormChange('status', e.target.value)}
+            value={form.platform}
+            onChange={(e) => handleFormChange('platform', e.target.value)}
           >
-            <option>Draft</option>
-            <option>Pending Approval</option>
-            <option>Approved</option>
+            <option value="iOS">iOS</option>
+            <option value="Android">Android</option>
+            <option value="iOS, Android">iOS, Android</option>
+            <option value="Web">Web</option>
           </select>
         </div>
+        {testCase && (
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={form.status}
+              onChange={(e) => handleFormChange('status', e.target.value)}
+            >
+              <option>Pending</option>
+              <option>Approved</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Custom Tables */}
@@ -426,22 +473,25 @@ export default function AddEditTestCase({
         <button className="btn btn-secondary" onClick={onCancel}>
           Cancel
         </button>
-        {!testCase || form.status !== 'Approved' && (
+        {testCase ? (
           <>
-            <button className="btn btn-secondary" onClick={() => handleSave('Draft')}>
-              Save as Draft
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => handleSave('Pending Approval')}
-            >
-              Save as Pending
+            {form.status !== 'Approved' && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => handleSave('Pending')}
+              >
+                Save as Pending
+              </button>
+            )}
+            <button className="btn btn-primary" onClick={handleApprove}>
+              {form.status === 'Approved' ? 'Update' : 'Approve Test Case'}
             </button>
           </>
+        ) : (
+          <button className="btn btn-primary" onClick={() => handleSave('Pending')}>
+            Add Test Case
+          </button>
         )}
-        <button className="btn btn-primary" onClick={handleApprove}>
-          {testCase && form.status === 'Approved' ? 'Update' : 'Approve Test Case'}
-        </button>
       </div>
     </div>
   );

@@ -1,19 +1,30 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '../.env' });
-
-const app = express();
-const PORT = 3001;
-
-app.use(cors());
-app.use(express.json());
+// Load environment variables
+dotenv.config();
 
 const ANTHROPIC_API_KEY = process.env.VITE_ANTHROPIC_API_KEY;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
-app.post('/api/generate-test-cases', async (req, res) => {
+export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     const { ticket, acceptanceCriteria = [] } = req.body;
 
@@ -112,8 +123,4 @@ Structure:
     console.error('❌ Error:', error);
     res.status(500).json({ error: error.message });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
-});
+}

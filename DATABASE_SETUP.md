@@ -18,6 +18,7 @@ Run the following SQL in your Supabase SQL editor to create the tables:
 CREATE TABLE tickets (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  description TEXT,
   type TEXT NOT NULL CHECK (type IN ('Bug', 'Feature', 'Task', 'Epic')),
   platform TEXT NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('Open', 'In Progress', 'In Review', 'Testing', 'Done')),
@@ -45,8 +46,8 @@ CREATE TABLE test_cases (
   description TEXT,
   pre_conditions TEXT,
   expected_result TEXT,
+  test_steps TEXT,
   status TEXT NOT NULL DEFAULT 'Draft' CHECK (status IN ('Draft', 'Pending Approval', 'Approved')),
-  test_steps JSONB DEFAULT '[]',
   custom_tables JSONB DEFAULT '[]',
   created_by TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,19 +102,38 @@ CREATE TABLE test_run_results (
 CREATE INDEX test_run_results_test_run_id_idx ON test_run_results(test_run_id);
 ```
 
-### 5. Enable Row Level Security (Optional but Recommended)
+### 5. Activity Logs Table
+
+```sql
+CREATE TABLE activity_logs (
+  id TEXT PRIMARY KEY,
+  ticket_id TEXT NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL,
+  description TEXT NOT NULL,
+  related_entity_id TEXT,
+  related_entity_type TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX activity_logs_ticket_id_idx ON activity_logs(ticket_id);
+CREATE INDEX activity_logs_created_at_idx ON activity_logs(created_at);
+```
+
+### 6. Enable Row Level Security (Optional but Recommended)
 
 ```sql
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE test_cases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE test_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE test_run_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 
 -- Create a policy allowing anonymous read/write (for development)
 CREATE POLICY "Allow all access for development" ON tickets FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all access for development" ON test_cases FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all access for development" ON test_runs FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all access for development" ON test_run_results FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all access for development" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
 ```
 
 ## Environment Setup

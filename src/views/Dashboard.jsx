@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Loader, Trash2 } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import ActionMenu from '../components/ActionMenu';
 import AddTicketModal from '../components/AddTicketModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatDate } from '../utils/dateUtils';
-import { ticketService } from '../lib/supabase';
+import { ticketService, testCaseService, testRunService } from '../lib/supabase';
+import { exportTicketToPDF, exportTicketToExcel } from '../utils/exportUtils';
 
-export default function Dashboard({ onSelectTicket, onShowToast }) {
+export default function Dashboard({ onSelectTicket, onShowToast, refreshTrigger = 0 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showAddTicket, setShowAddTicket] = useState(false);
@@ -19,7 +20,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
 
   useEffect(() => {
     loadTickets();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadTickets = async () => {
     try {
@@ -56,11 +57,12 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
   const ticketActions = [
     { label: 'View Ticket', icon: '👁️' },
     { label: 'Edit Ticket', icon: '✏️' },
-    { label: 'Export', icon: '📥' },
+    { label: 'Export to PDF', icon: '📄' },
+    { label: 'Export to Excel', icon: '📊' },
     { label: 'Delete Ticket', icon: '🗑️', danger: true }
   ];
 
-  const handleAction = (action, ticket) => {
+  const handleAction = async (action, ticket) => {
     switch (action.label) {
       case 'View Ticket':
         onSelectTicket(ticket);
@@ -68,8 +70,31 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
       case 'Edit Ticket':
         onShowToast('Edit ticket feature coming soon', 'info');
         break;
-      case 'Export':
-        onShowToast('Exporting ticket...', 'success');
+      case 'Export to PDF':
+        try {
+          const [testCases, testRuns] = await Promise.all([
+            testCaseService.getByTicketId(ticket.id),
+            testRunService.getByTicketId(ticket.id)
+          ]);
+          exportTicketToPDF(ticket, testCases, testRuns);
+          onShowToast('Ticket exported to PDF', 'success');
+        } catch (err) {
+          console.error('Failed to export ticket to PDF:', err);
+          onShowToast('Failed to export ticket to PDF: ' + err.message, 'error');
+        }
+        break;
+      case 'Export to Excel':
+        try {
+          const [testCases, testRuns] = await Promise.all([
+            testCaseService.getByTicketId(ticket.id),
+            testRunService.getByTicketId(ticket.id)
+          ]);
+          exportTicketToExcel(ticket, testCases, testRuns);
+          onShowToast('Ticket exported to Excel', 'success');
+        } catch (err) {
+          console.error('Failed to export ticket to Excel:', err);
+          onShowToast('Failed to export ticket to Excel: ' + err.message, 'error');
+        }
         break;
       case 'Delete Ticket':
         setTicketToDelete(ticket);
@@ -135,9 +160,8 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
       )}
 
       <div className="action-row">
-        <h1>Jira Ticket Dashboard</h1>
+        <h1>Mobile QA Assistant</h1>
         <button className="btn btn-primary" onClick={() => setShowAddTicket(true)}>
-          <Plus size={18} />
           Add Ticket
         </button>
       </div>
@@ -161,14 +185,13 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <Search size={18} style={{ color: '#999', marginTop: '6px' }} />
       </div>
 
       <div className="table-container">
         <table>
           <thead>
             <tr>
-              <th>Jira Key</th>
+              <th>Jira Ticket</th>
               <th>Ticket Name</th>
               <th>Type</th>
               <th>Platform</th>
@@ -196,11 +219,11 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                     {ticket.status}
                   </span>
                 </td>
-                <td>{ticket.testCaseCount}</td>
-                <td>{ticket.testRunCount}</td>
+                <td>{ticket.test_case_count || 0}</td>
+                <td>{ticket.test_run_count || 0}</td>
                 <td>
-                  {ticket.qaFailedCount > 0 ? (
-                    <span className="badge badge-error">{ticket.qaFailedCount}</span>
+                  {ticket.qa_failed_count > 0 ? (
+                    <span className="badge badge-error">{ticket.qa_failed_count}</span>
                   ) : (
                     <span>0</span>
                   )}
@@ -216,7 +239,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                         setOpenMenuId(openMenuId === ticket.id ? null : ticket.id);
                       }}
                     >
-                      <MoreVertical size={18} />
+                      ⋯
                     </button>
                     {openMenuId === ticket.id && (
                       <ActionMenu

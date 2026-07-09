@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Plus, MoreVertical } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { testCaseService } from '../lib/supabase';
 import ActionMenu from './ActionMenu';
+import { exportTestCaseToPDF, exportTestCaseToExcel } from '../utils/exportUtils';
 
 export default function TestCasesTab({
   ticket,
@@ -20,16 +21,14 @@ export default function TestCasesTab({
     switch (status) {
       case 'Approved':
         return 'badge-success';
-      case 'Pending Approval':
+      case 'Pending':
         return 'badge-warning';
-      case 'Draft':
-        return 'badge-gray';
       default:
         return 'badge-gray';
     }
   };
 
-  const handleAction = (action, testCase) => {
+  const handleAction = async (action, testCase) => {
     switch (action.label) {
       case 'View Test Case':
         onSelectTestCase(testCase);
@@ -40,31 +39,53 @@ export default function TestCasesTab({
         setCurrentView('edit-test-case');
         break;
       case 'Duplicate Test Case':
-        const duplicated = {
-          ...testCase,
-          id: `TC-${Math.floor(Math.random() * 10000)}`,
-          status: 'Draft',
-          approvedBy: null,
-          approvedAt: null
-        };
-        setTestCases([...testCases, duplicated]);
-        onShowToast('Test case duplicated', 'success');
-        break;
-      case 'Approve Test Case':
-        // This is handled in the detail view, so just notify
-        onShowToast('Please use the detail view to approve test cases', 'info');
+        try {
+          const duplicated = {
+            ...testCase,
+            id: `TC-${Math.floor(Math.random() * 10000)}`,
+            status: 'Pending',
+            approved_by: null,
+            approved_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          const saved = await testCaseService.create(duplicated);
+          setTestCases([...testCases, saved]);
+          onShowToast('Test case duplicated', 'success');
+        } catch (err) {
+          console.error('Failed to duplicate test case:', err);
+          onShowToast('Failed to duplicate test case: ' + err.message, 'error');
+        }
         break;
       case 'Export to PDF':
-        onShowToast('Exporting to PDF...', 'success');
+        try {
+          exportTestCaseToPDF(ticket, testCase);
+          onShowToast('Test case exported to PDF', 'success');
+        } catch (err) {
+          console.error('Failed to export test case to PDF:', err);
+          onShowToast('Failed to export test case to PDF', 'error');
+        }
         break;
       case 'Export to Excel':
-        onShowToast('Exporting to Excel...', 'success');
+        try {
+          exportTestCaseToExcel(ticket, testCase);
+          onShowToast('Test case exported to Excel', 'success');
+        } catch (err) {
+          console.error('Failed to export test case to Excel:', err);
+          onShowToast('Failed to export test case to Excel', 'error');
+        }
         break;
       case 'Delete Test Case':
         if (confirm('Are you sure you want to delete this test case?')) {
-          const newCases = testCases.filter(tc => tc.id !== testCase.id);
-          setTestCases(newCases);
-          onShowToast('Test case deleted', 'success');
+          try {
+            await testCaseService.delete(testCase.id);
+            const newCases = testCases.filter(tc => tc.id !== testCase.id);
+            setTestCases(newCases);
+            onShowToast('Test case deleted', 'success');
+          } catch (err) {
+            console.error('Failed to delete test case:', err);
+            onShowToast('Failed to delete test case: ' + err.message, 'error');
+          }
         }
         break;
     }
@@ -75,7 +96,6 @@ export default function TestCasesTab({
     { label: 'View Test Case', icon: '👁️' },
     { label: 'Edit Test Case', icon: '✏️' },
     { label: 'Duplicate Test Case', icon: '📋' },
-    { label: 'Approve Test Case', icon: '✅' },
     { label: 'Export to PDF', icon: '📄' },
     { label: 'Export to Excel', icon: '📊' },
     { label: 'Delete Test Case', icon: '🗑️', danger: true }
@@ -96,7 +116,6 @@ export default function TestCasesTab({
               setCurrentView('add-test-case');
             }}
           >
-            <Plus size={18} />
             Add Test Case
           </button>
         </div>
@@ -112,7 +131,6 @@ export default function TestCasesTab({
           className="btn btn-primary"
           onClick={() => setCurrentView('add-test-case')}
         >
-          <Plus size={18} />
           Add Test Case
         </button>
       </div>
@@ -162,7 +180,7 @@ export default function TestCasesTab({
                         setOpenMenuId(openMenuId === testCase.id ? null : testCase.id);
                       }}
                     >
-                      <MoreVertical size={18} />
+                      ⋯
                     </button>
                     {openMenuId === testCase.id && (
                       <ActionMenu

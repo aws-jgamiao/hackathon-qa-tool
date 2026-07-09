@@ -1,15 +1,15 @@
 import { ExternalLink } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 
-export default function TicketHeader({ ticket }) {
+export default function TicketHeader({ ticket, onStatusChange }) {
   const getStatusBadgeClass = (status) => {
     switch (status) {
+      case 'Open':
+        return 'badge-gray';
       case 'In Progress':
         return 'badge-info';
-      case 'In Review':
-        return 'badge-warning';
-      case 'Testing':
-        return 'badge-info';
+      case 'Done':
+        return 'badge-success';
       default:
         return 'badge-gray';
     }
@@ -54,10 +54,28 @@ export default function TicketHeader({ ticket }) {
         </div>
         <div className="detail-item">
           <div className="detail-label">Status</div>
-          <div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <span className={`badge ${getStatusBadgeClass(ticket.status)}`}>
               {ticket.status}
             </span>
+            {onStatusChange && (
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {['Open', 'In Progress', 'Done'].map((status) => (
+                  <button
+                    key={status}
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => onStatusChange(status)}
+                    style={{
+                      padding: '4px 12px',
+                      fontSize: '12px',
+                      opacity: ticket.status === status ? 1 : 0.6
+                    }}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="detail-item">
@@ -66,15 +84,15 @@ export default function TicketHeader({ ticket }) {
         </div>
         <div className="detail-item">
           <div className="detail-label">Test Cases</div>
-          <div className="detail-value">{ticket.testCaseCount}</div>
+          <div className="detail-value">{ticket.test_case_count || 0}</div>
         </div>
         <div className="detail-item">
           <div className="detail-label">Test Runs</div>
-          <div className="detail-value">{ticket.testRunCount}</div>
+          <div className="detail-value">{ticket.test_run_count || 0}</div>
         </div>
         <div className="detail-item">
           <div className="detail-label">QA Failed Count</div>
-          <div className="detail-value">{ticket.qaFailedCount}</div>
+          <div className="detail-value">{ticket.qa_failed_count || 0}</div>
         </div>
         <div className="detail-item">
           <div className="detail-label">Updated At</div>

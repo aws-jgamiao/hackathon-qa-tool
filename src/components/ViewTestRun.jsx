@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Edit, Play, AlertCircle, Check, FileText } from 'lucide-react';
+import { Edit, AlertCircle, Check, FileText, Trash2 } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { exportTestRunToPDF, exportTestRunToExcel } from '../utils/exportUtils';
 
 export default function ViewTestRun({
   ticket,
@@ -12,8 +12,22 @@ export default function ViewTestRun({
   onCreateRetest,
   onMarkQAFailed,
   onApprove,
-  onShowToast
+  onDelete,
+  onShowToast,
+  allTestRuns = []
 }) {
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this test run?')) {
+      onDelete();
+    }
+  };
+  // Check if a later version of this test run has passed
+  const hasPassedRetest = allTestRuns?.some(tr =>
+    tr.test_case_id === testRun.test_case_id &&
+    parseInt(tr.version.substring(1)) > parseInt(testRun.version.substring(1)) &&
+    tr.status === 'Passed'
+  );
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'Passed':
@@ -33,22 +47,20 @@ export default function ViewTestRun({
   };
 
   const handleCreateRetest = () => {
-    const versions = ['V1', 'V2', 'V3', 'V4', 'V5'];
     const currentVersion = parseInt(testRun.version.substring(1));
     const nextVersion = `V${currentVersion + 1}`;
 
+    const runNumber = allTestRuns.length + 1;
     const retest = {
-      id: `RUN-${Math.floor(Math.random() * 10000)}`,
-      testCaseId: testRun.testCaseId,
-      testCaseTitle: testRun.testCaseTitle,
+      id: `TR-${String(runNumber).padStart(3, '0')}`,
+      ticket_id: testRun.ticket_id,
+      test_case_id: testRun.test_case_id,
       platform: testRun.platform,
       version: nextVersion,
       status: 'Not Run',
-      qaFailedCount: 0,
-      executedBy: 'Current User',
-      executedAt: new Date().toISOString(),
-      actualResults: [],
-      steps: []
+      qa_failed_count: 0,
+      executed_by: 'Current User',
+      executed_at: new Date().toISOString()
     };
     onCreateRetest(retest);
   };
@@ -57,7 +69,8 @@ export default function ViewTestRun({
     const failed = {
       ...testRun,
       status: 'QA Failed',
-      qaFailedCount: (testRun.qaFailedCount || 0) + 1
+      qa_failed_count: (testRun.qa_failed_count || 0) + 1,
+      updated_at: new Date().toISOString()
     };
     onMarkQAFailed(failed);
   };
@@ -65,7 +78,8 @@ export default function ViewTestRun({
   const handleMarkPassed = () => {
     const approved = {
       ...testRun,
-      status: 'Passed'
+      status: 'Passed',
+      updated_at: new Date().toISOString()
     };
     onApprove(approved);
   };
@@ -120,7 +134,7 @@ export default function ViewTestRun({
               {testRun.qaFailedCount === 0 && <span>0</span>}
             </div>
           </div>
-          {testRun.status === 'QA Failed' && (
+          {testRun.status === 'QA Failed' && !hasPassedRetest && (
             <div className="detail-item">
               <div className="detail-label">Next Retest</div>
               <div className="detail-value">
@@ -136,49 +150,86 @@ export default function ViewTestRun({
       <div className="card">
         <h3>Test Execution Results</h3>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Test Case #</th>
-                <th>Component</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Pre-Conditions</th>
-                <th>Test Steps</th>
-                <th>Expected Result</th>
-                <th>Actual Result</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{testCase?.id}</td>
-                <td>{testCase?.component}</td>
-                <td>{testCase?.title}</td>
-                <td>{testCase?.description}</td>
-                <td>{testCase?.preConditions}</td>
-                <td>{testCase?.testSteps?.length || 0} steps</td>
-                <td>{testCase?.expectedResult}</td>
-                <td>
-                  <div style={{ whiteSpace: 'pre-wrap', maxWidth: '300px' }}>
-                    {testRun.actualResults?.[0] || '-'}
-                  </div>
-                </td>
-                <td>
-                  <span className={`badge ${getStatusBadgeClass(testRun.status)}`}>
-                    {testRun.status}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+          <div>
+            <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+              Test Case
+            </h4>
+            <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '8px', color: 'var(--text-primary)' }}>
+              {testCase?.id} - {testCase?.title}
+            </p>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+              {testCase?.component}
+            </p>
+          </div>
+          <div>
+            <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+              Status
+            </h4>
+            <span className={`badge ${getStatusBadgeClass(testRun.status)}`}>
+              {testRun.status}
+            </span>
+          </div>
         </div>
 
-        {testCase?.customTables && testCase.customTables.length > 0 && (
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e5e5' }}>
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Description
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.description}
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Pre-Conditions
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.pre_conditions || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Test Steps
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.test_steps || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Expected Result
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.expected_result || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Actual Result <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}></span>
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testRun.actual_result || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Test Notes <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>(Optional)</span>
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testRun.test_notes || '-'}
+          </p>
+        </div>
+
+        {testCase?.custom_tables && testCase.custom_tables.length > 0 && (
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
             <h4>Custom Tables</h4>
-            {testCase.customTables.map((table) => (
+            {testCase.custom_tables.map((table) => (
               <div key={table.id} style={{ marginBottom: '20px' }}>
                 <h5 style={{ marginBottom: '12px' }}>{table.name}</h5>
                 <div style={{ overflowX: 'auto' }}>
@@ -191,8 +242,8 @@ export default function ViewTestRun({
                             style={{
                               textAlign: 'left',
                               padding: '8px',
-                              background: '#f9f9f9',
-                              border: '1px solid #e5e5e5'
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)'
                             }}
                           >
                             {col}
@@ -208,7 +259,8 @@ export default function ViewTestRun({
                               key={colIndex}
                               style={{
                                 padding: '8px',
-                                border: '1px solid #e5e5e5'
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--text-primary)'
                               }}
                             >
                               {cell}
@@ -225,13 +277,13 @@ export default function ViewTestRun({
         )}
 
         {testRun.status === 'QA Failed' && (
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e5e5' }}>
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
             <h4>QA Failed Cycle Tracking</h4>
-            <div style={{ padding: '16px', background: '#fff3e0', borderRadius: '6px' }}>
+            <div style={{ padding: '16px', background: '#fff3e0', borderRadius: '6px', color: 'var(--text-primary)' }}>
               <p style={{ marginBottom: '8px' }}>
                 <strong>Current Cycle:</strong> {testRun.version} - QA Failed
               </p>
-              <p style={{ fontSize: '14px', color: '#666' }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
                 This run has been marked as QA Failed. Create a retest run to continue testing.
               </p>
             </div>
@@ -246,29 +298,68 @@ export default function ViewTestRun({
             <Edit size={16} />
             Edit Test Run
           </button>
-          <button className="btn btn-primary" onClick={onExecute}>
-            <Play size={16} />
-            Execute / Manage Test Run
-          </button>
-          {testRun.status !== 'QA Failed' && (
-            <button className="btn btn-secondary" onClick={handleMarkQAFailed}>
-              <AlertCircle size={16} />
-              Mark as QA Failed
-            </button>
+
+          {testRun.status === 'Passed' && (
+            <div style={{ padding: '12px', background: '#e8f5e9', borderRadius: '6px', border: '1px solid #2e7d32', color: '#2e7d32' }}>
+              <strong>✓ Marked as Passed</strong>
+            </div>
           )}
-          {testRun.status !== 'Passed' && (
-            <button className="btn btn-primary" onClick={handleMarkPassed}>
-              <Check size={16} />
-              Mark as Approved / Passed
-            </button>
+          {testRun.status === 'QA Failed' && (
+            <div style={{ padding: '12px', background: '#ffebee', borderRadius: '6px', border: '1px solid #c62828', color: '#c62828' }}>
+              <strong>✕ Marked as QA Failed</strong>
+            </div>
           )}
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to PDF...')}>
+
+          {testRun.status !== 'Passed' && testRun.status !== 'QA Failed' && (
+            <>
+              <button className="btn btn-secondary" onClick={handleMarkQAFailed} style={{ borderColor: '#c62828', color: '#c62828' }}>
+                <AlertCircle size={16} />
+                Mark as QA Failed
+              </button>
+              <button className="btn btn-secondary" onClick={handleMarkPassed} style={{ borderColor: '#2e7d32', color: '#2e7d32' }}>
+                <Check size={16} />
+                Mark as Passed
+              </button>
+            </>
+          )}
+
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestRunToPDF(ticket, testRun, testCase);
+                onShowToast('Test run exported to PDF', 'success');
+              } catch (err) {
+                console.error('Failed to export test run to PDF:', err);
+                onShowToast('Failed to export test run to PDF', 'error');
+              }
+            }}
+          >
             <FileText size={16} />
             Export to PDF
           </button>
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to Excel...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestRunToExcel(ticket, testRun, testCase);
+                onShowToast('Test run exported to Excel', 'success');
+              } catch (err) {
+                console.error('Failed to export test run to Excel:', err);
+                onShowToast('Failed to export test run to Excel', 'error');
+              }
+            }}
+          >
             📊
             Export to Excel
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleDelete}
+            style={{ borderColor: '#c62828', color: '#c62828' }}
+          >
+            <Trash2 size={16} />
+            Delete Test Run
           </button>
         </div>
       </div>

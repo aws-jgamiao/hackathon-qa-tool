@@ -1,7 +1,11 @@
-const BACKEND_URL = 'http://localhost:3001';
+// Use the same origin in production, localhost:3001 in development
+const BACKEND_URL = import.meta.env.MODE === 'production'
+  ? window.location.origin
+  : 'http://localhost:3001';
 
-export async function generateTestCases(ticket) {
+export async function generateTestCases(ticket, acceptanceCriteria = []) {
   console.log('🤖 Starting test case generation for ticket:', ticket.id);
+  console.log('📝 Acceptance criteria:', acceptanceCriteria);
 
   try {
     console.log('📡 Calling backend API...');
@@ -10,7 +14,7 @@ export async function generateTestCases(ticket) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ ticket })
+      body: JSON.stringify({ ticket, acceptanceCriteria })
     });
 
     if (!response.ok) {
@@ -29,7 +33,7 @@ export async function generateTestCases(ticket) {
     const enrichedCases = testCases.map((tc, index) => ({
       id: `TC-${Date.now()}-${index}`,
       ...tc,
-      status: 'Draft',
+      status: 'Pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       approvedBy: null,

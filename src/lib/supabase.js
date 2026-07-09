@@ -97,10 +97,9 @@ export const testCaseService = {
       .from('test_cases')
       .update(updates)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
     if (error) throw error;
-    return data;
+    return data?.[0] || null;
   },
 
   async delete(id) {
@@ -148,10 +147,9 @@ export const testRunService = {
       .from('test_runs')
       .update(updates)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
     if (error) throw error;
-    return data;
+    return data?.[0] || null;
   },
 
   async delete(id) {
@@ -190,5 +188,45 @@ export const testRunResultService = {
       .delete()
       .eq('id', id);
     if (error) throw error;
+  }
+};
+
+export const activityLogService = {
+  async create(ticketId, actionType, description, relatedEntityId = null, relatedEntityType = null) {
+    const { data, error } = await supabase
+      .from('activity_logs')
+      .insert([{
+        id: `AL-${Date.now()}`,
+        ticket_id: ticketId,
+        action_type: actionType,
+        description: description,
+        related_entity_id: relatedEntityId,
+        related_entity_type: relatedEntityType,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getByTicketId(ticketId) {
+    const { data, error } = await supabase
+      .from('activity_logs')
+      .select('*')
+      .eq('ticket_id', ticketId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getAll(limit = 20, offset = 0) {
+    const { data, error, count } = await supabase
+      .from('activity_logs')
+      .select('*, tickets:ticket_id(id, name)', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (error) throw error;
+    return { data: data || [], count: count || 0 };
   }
 };

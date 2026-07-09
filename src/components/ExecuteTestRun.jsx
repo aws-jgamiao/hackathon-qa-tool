@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Save, AlertCircle, Check, FileText } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { exportTestRunToPDF, exportTestRunToExcel } from '../utils/exportUtils';
 
 export default function ExecuteTestRun({
   ticket,
@@ -12,33 +13,15 @@ export default function ExecuteTestRun({
   onApprove,
   onShowToast
 }) {
-  const [actualResults, setActualResults] = useState(testRun?.actualResults || []);
-  const [stepStatuses, setStepStatuses] = useState(
-    testCase?.testSteps?.map(() => 'Not Run') || []
-  );
-
-  const handleStepStatusChange = (index, status) => {
-    const updated = [...stepStatuses];
-    updated[index] = status;
-    setStepStatuses(updated);
-  };
-
-  const handleActualResultChange = (index, value) => {
-    const updated = [...actualResults];
-    updated[index] = value;
-    setActualResults(updated);
-  };
+  const [actualResult, setActualResult] = useState(testRun?.actual_result || '');
+  const [testNotes, setTestNotes] = useState(testRun?.test_notes || '');
 
   const handleSave = () => {
     const updated = {
       ...testRun,
-      actualResults,
-      steps: testCase.testSteps.map((step, index) => ({
-        step,
-        status: stepStatuses[index],
-        actualResult: actualResults[index]
-      })),
-      updatedAt: new Date().toISOString()
+      actual_result: actualResult,
+      test_notes: testNotes,
+      updated_at: new Date().toISOString()
     };
     onSave(updated);
   };
@@ -46,9 +29,11 @@ export default function ExecuteTestRun({
   const handleMarkQAFailed = () => {
     const failed = {
       ...testRun,
+      actual_result: actualResult,
+      test_notes: testNotes,
       status: 'QA Failed',
-      qaFailedCount: (testRun.qaFailedCount || 0) + 1,
-      updatedAt: new Date().toISOString()
+      qa_failed_count: (testRun.qa_failed_count || 0) + 1,
+      updated_at: new Date().toISOString()
     };
     onMarkQAFailed(failed);
   };
@@ -56,8 +41,10 @@ export default function ExecuteTestRun({
   const handleMarkPassed = () => {
     const approved = {
       ...testRun,
+      actual_result: actualResult,
+      test_notes: testNotes,
       status: 'Passed',
-      updatedAt: new Date().toISOString()
+      updated_at: new Date().toISOString()
     };
     onApprove(approved);
   };
@@ -89,125 +76,98 @@ export default function ExecuteTestRun({
           </div>
           <div className="detail-item">
             <div className="detail-label">Executed By</div>
-            <div className="detail-value">{testRun.executedBy}</div>
+            <div className="detail-value">{testRun.executed_by}</div>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h3>Test Execution Table</h3>
+        <h3>Test Execution Details</h3>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Test Case #</th>
-                <th>Component</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Pre-Conditions</th>
-                <th>Test Steps</th>
-                <th>Expected Result</th>
-                <th>Actual Result</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{testCase?.id}</td>
-                <td>{testCase?.component}</td>
-                <td>{testCase?.title}</td>
-                <td>{testCase?.description}</td>
-                <td>{testCase?.preConditions}</td>
-                <td>
-                  {testCase?.testSteps?.length || 0} steps
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => onShowToast('View detailed steps below')}
-                  >
-                    View
-                  </button>
-                </td>
-                <td>{testCase?.expectedResult}</td>
-                <td>
-                  <textarea
-                    value={actualResults[0] || ''}
-                    onChange={(e) => handleActualResultChange(0, e.target.value)}
-                    style={{
-                      width: '100%',
-                      minHeight: '60px',
-                      padding: '8px',
-                      borderRadius: '4px',
-                      border: '1px solid #e5e5e5',
-                      fontFamily: 'inherit'
-                    }}
-                    placeholder="Enter actual result..."
-                  />
-                </td>
-                <td>
-                  <select
-                    value={stepStatuses[0] || 'Not Run'}
-                    onChange={(e) => handleStepStatusChange(0, e.target.value)}
-                  >
-                    <option>Not Run</option>
-                    <option>Passed</option>
-                    <option>Failed</option>
-                    <option>Blocked</option>
-                    <option>Retest</option>
-                    <option>QA Failed</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Description
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.description}
+          </p>
         </div>
 
-        {testCase?.testSteps && testCase.testSteps.length > 0 && (
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e5e5' }}>
-            <h4>Test Steps Detail</h4>
-            {testCase.testSteps.map((step, index) => (
-              <div
-                key={index}
-                style={{
-                  marginBottom: '20px',
-                  padding: '16px',
-                  background: '#f9f9f9',
-                  borderRadius: '6px'
-                }}
-              >
-                <div style={{ marginBottom: '12px' }}>
-                  <strong>Step {index + 1}:</strong> {step}
-                </div>
-                <textarea
-                  value={actualResults[index] || ''}
-                  onChange={(e) => handleActualResultChange(index, e.target.value)}
-                  placeholder="Actual result for this step..."
-                  style={{
-                    width: '100%',
-                    minHeight: '60px',
-                    marginBottom: '12px'
-                  }}
-                />
-                <select
-                  value={stepStatuses[index] || 'Not Run'}
-                  onChange={(e) => handleStepStatusChange(index, e.target.value)}
-                >
-                  <option>Not Run</option>
-                  <option>Passed</option>
-                  <option>Failed</option>
-                  <option>Blocked</option>
-                  <option>Retest</option>
-                  <option>QA Failed</option>
-                </select>
-              </div>
-            ))}
-          </div>
-        )}
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Pre-Conditions
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.pre_conditions || '-'}
+          </p>
+        </div>
 
-        {testCase?.customTables && testCase.customTables.length > 0 && (
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e5e5' }}>
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Test Steps
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.test_steps || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Expected Result
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+            {testCase?.expected_result || '-'}
+          </p>
+        </div>
+
+        <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '24px', marginBottom: '24px' }}>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Actual Result
+          </h4>
+          <textarea
+            value={actualResult}
+            onChange={(e) => setActualResult(e.target.value)}
+            placeholder="Enter actual result from test execution..."
+            style={{
+              width: '100%',
+              minHeight: '100px',
+              padding: '12px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              fontFamily: 'inherit',
+              fontSize: '14px',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)'
+            }}
+          />
+        </div>
+
+        <div>
+          <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Test Notes
+          </h4>
+          <textarea
+            value={testNotes}
+            onChange={(e) => setTestNotes(e.target.value)}
+            placeholder="Add any additional notes about this test run..."
+            style={{
+              width: '100%',
+              minHeight: '100px',
+              padding: '12px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              fontFamily: 'inherit',
+              fontSize: '14px',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)'
+            }}
+          />
+        </div>
+
+        {testCase?.custom_tables && testCase.custom_tables.length > 0 && (
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
             <h4>Custom Tables</h4>
-            {testCase.customTables.map((table) => (
+            {testCase.custom_tables.map((table) => (
               <div key={table.id} style={{ marginBottom: '20px' }}>
                 <h5 style={{ marginBottom: '12px' }}>{table.name}</h5>
                 <div style={{ overflowX: 'auto' }}>
@@ -220,8 +180,8 @@ export default function ExecuteTestRun({
                             style={{
                               textAlign: 'left',
                               padding: '8px',
-                              background: '#f9f9f9',
-                              border: '1px solid #e5e5e5'
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)'
                             }}
                           >
                             {col}
@@ -237,7 +197,7 @@ export default function ExecuteTestRun({
                               key={colIndex}
                               style={{
                                 padding: '8px',
-                                border: '1px solid #e5e5e5'
+                                border: '1px solid var(--border-color)'
                               }}
                             >
                               <input
@@ -249,9 +209,11 @@ export default function ExecuteTestRun({
                                 }}
                                 style={{
                                   width: '100%',
-                                  border: '1px solid #e5e5e5',
+                                  border: '1px solid var(--border-color)',
                                   padding: '4px',
-                                  borderRadius: '3px'
+                                  borderRadius: '3px',
+                                  backgroundColor: 'var(--bg-secondary)',
+                                  color: 'var(--text-primary)'
                                 }}
                               />
                             </td>
@@ -270,23 +232,45 @@ export default function ExecuteTestRun({
       <div className="card">
         <h3>Actions</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button className="btn btn-primary" onClick={handleSave}>
+          <button className="btn btn-secondary" onClick={handleSave}>
             <Save size={16} />
             Save Progress
           </button>
-          <button className="btn btn-secondary" onClick={handleMarkQAFailed}>
+          <button className="btn btn-secondary" onClick={handleMarkQAFailed} style={{ borderColor: '#c62828', color: '#c62828' }}>
             <AlertCircle size={16} />
             Mark as QA Failed
           </button>
-          <button className="btn btn-primary" onClick={handleMarkPassed}>
+          <button className="btn btn-secondary" onClick={handleMarkPassed} style={{ borderColor: '#2e7d32', color: '#2e7d32' }}>
             <Check size={16} />
             Mark as Approved / Passed
           </button>
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to PDF...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestRunToPDF(ticket, testRun, testCase);
+                onShowToast('Test run exported to PDF', 'success');
+              } catch (err) {
+                console.error('Failed to export test run to PDF:', err);
+                onShowToast('Failed to export test run to PDF', 'error');
+              }
+            }}
+          >
             <FileText size={16} />
             Export to PDF
           </button>
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to Excel...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestRunToExcel(ticket, testRun, testCase);
+                onShowToast('Test run exported to Excel', 'success');
+              } catch (err) {
+                console.error('Failed to export test run to Excel:', err);
+                onShowToast('Failed to export test run to Excel', 'error');
+              }
+            }}
+          >
             📊
             Export to Excel
           </button>

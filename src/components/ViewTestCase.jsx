@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Copy, Edit, Check, FileText, Trash2 } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { exportTestCaseToPDF, exportTestCaseToExcel } from '../utils/exportUtils';
 
 export default function ViewTestCase({
   ticket,
@@ -18,11 +19,11 @@ export default function ViewTestCase({
     const duplicated = {
       ...testCase,
       id: `TC-${Math.floor(Math.random() * 10000)}`,
-      status: 'Draft',
-      approvedBy: null,
-      approvedAt: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      status: 'Pending',
+      approved_by: null,
+      approved_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     onDuplicate(duplicated);
   };
@@ -32,8 +33,8 @@ export default function ViewTestCase({
       const approved = {
         ...testCase,
         status: 'Approved',
-        approvedBy: 'Current User',
-        approvedAt: new Date().toISOString()
+        approved_by: 'Current User',
+        approved_at: new Date().toISOString()
       };
       // The ticket platform handling is done in the parent component
       onApprove(approved);
@@ -50,10 +51,8 @@ export default function ViewTestCase({
     switch (status) {
       case 'Approved':
         return 'badge-success';
-      case 'Pending Approval':
+      case 'Pending':
         return 'badge-warning';
-      case 'Draft':
-        return 'badge-gray';
       default:
         return 'badge-gray';
     }
@@ -90,7 +89,7 @@ export default function ViewTestCase({
           </div>
           <div className="detail-item">
             <div className="detail-label">Created By</div>
-            <div className="detail-value">{testCase.createdBy}</div>
+            <div className="detail-value">{testCase.created_by || '-'}</div>
           </div>
           <div className="detail-item">
             <div className="detail-label">Created At</div>
@@ -100,11 +99,11 @@ export default function ViewTestCase({
             <div className="detail-label">Updated At</div>
             <div className="detail-value">{formatDate(testCase.updated_at)}</div>
           </div>
-          {testCase.approvedBy && (
+          {testCase.approved_by && (
             <>
               <div className="detail-item">
                 <div className="detail-label">Approved By</div>
-                <div className="detail-value">{testCase.approvedBy}</div>
+                <div className="detail-value">{testCase.approved_by}</div>
               </div>
               <div className="detail-item">
                 <div className="detail-label">Approved At</div>
@@ -119,49 +118,45 @@ export default function ViewTestCase({
         <h3>Test Case Details</h3>
 
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '8px', color: '#666', fontSize: '12px', fontWeight: '600' }}>
+          <h4 style={{ marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
             Description
           </h4>
-          <p style={{ color: '#1a1a1a', whiteSpace: 'pre-wrap' }}>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
             {testCase.description}
           </p>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '8px', color: '#666', fontSize: '12px', fontWeight: '600' }}>
+          <h4 style={{ marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
             Pre-Conditions
           </h4>
-          <p style={{ color: '#1a1a1a', whiteSpace: 'pre-wrap' }}>
-            {testCase.preConditions}
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+            {testCase.pre_conditions || '-'}
           </p>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '8px', color: '#666', fontSize: '12px', fontWeight: '600' }}>
+          <h4 style={{ marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
             Test Steps
           </h4>
-          <ol style={{ marginLeft: '20px', color: '#1a1a1a' }}>
-            {testCase.testSteps.map((step, index) => (
-              <li key={index} style={{ marginBottom: '6px' }}>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ marginBottom: '8px', color: '#666', fontSize: '12px', fontWeight: '600' }}>
-            Expected Result
-          </h4>
-          <p style={{ color: '#1a1a1a', whiteSpace: 'pre-wrap' }}>
-            {testCase.expectedResult}
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+            {typeof testCase.test_steps === 'string' ? testCase.test_steps : (Array.isArray(testCase.test_steps) ? testCase.test_steps.join('\n') : testCase.test_steps || '-')}
           </p>
         </div>
 
-        {testCase.customTables && testCase.customTables.length > 0 && (
-          <div style={{ marginTop: '24px', borderTop: '1px solid #e5e5e5', paddingTop: '20px' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{ marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: '600' }}>
+            Expected Result
+          </h4>
+          <p style={{ color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
+            {testCase.expected_result || '-'}
+          </p>
+        </div>
+
+        {testCase.custom_tables && testCase.custom_tables.length > 0 && (
+          <div style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
             <h3>Custom Tables</h3>
-            {testCase.customTables.map((table) => (
+            {testCase.custom_tables.map((table) => (
               <div key={table.id} style={{ marginBottom: '20px' }}>
                 <h4 style={{ marginBottom: '12px' }}>{table.name}</h4>
                 <div style={{ overflowX: 'auto' }}>
@@ -174,8 +169,8 @@ export default function ViewTestCase({
                             style={{
                               textAlign: 'left',
                               padding: '8px',
-                              background: '#f9f9f9',
-                              border: '1px solid #e5e5e5'
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)'
                             }}
                           >
                             {col}
@@ -191,7 +186,8 @@ export default function ViewTestCase({
                               key={colIndex}
                               style={{
                                 padding: '8px',
-                                border: '1px solid #e5e5e5'
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--text-primary)'
                               }}
                             >
                               {cell}
@@ -225,11 +221,33 @@ export default function ViewTestCase({
               Approve Test Case
             </button>
           )}
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to PDF...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestCaseToPDF(ticket, testCase);
+                onShowToast('Test case exported to PDF', 'success');
+              } catch (err) {
+                console.error('Failed to export test case to PDF:', err);
+                onShowToast('Failed to export test case to PDF', 'error');
+              }
+            }}
+          >
             <FileText size={16} />
             Export to PDF
           </button>
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting to Excel...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestCaseToExcel(ticket, testCase);
+                onShowToast('Test case exported to Excel', 'success');
+              } catch (err) {
+                console.error('Failed to export test case to Excel:', err);
+                onShowToast('Failed to export test case to Excel', 'error');
+              }
+            }}
+          >
             📊
             Export to Excel
           </button>

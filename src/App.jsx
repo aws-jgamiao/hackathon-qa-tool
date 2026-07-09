@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './views/Dashboard';
 import TicketWorkspace from './views/TicketWorkspace';
+import ActivityLogView from './views/ActivityLogView';
 import Toast from './components/Toast';
 import './index.css';
 
@@ -11,6 +12,7 @@ export default function App() {
   const [selectedTestCase, setSelectedTestCase] = useState(null);
   const [selectedTestRun, setSelectedTestRun] = useState(null);
   const [toast, setToast] = useState(null);
+  const [refreshTickets, setRefreshTickets] = useState(0);
   const [appState, setAppState] = useState({
     tickets: [],
     testCases: {},
@@ -44,6 +46,7 @@ export default function App() {
     setSelectedTicket(null);
     setSelectedTestCase(null);
     setSelectedTestRun(null);
+    setRefreshTickets(prev => prev + 1);
   };
 
   const renderContent = () => {
@@ -53,6 +56,7 @@ export default function App() {
           <Dashboard
             onSelectTicket={handleSelectTicket}
             onShowToast={showToast}
+            refreshTrigger={refreshTickets}
           />
         );
       case 'ticket-workspace':
@@ -78,6 +82,8 @@ export default function App() {
             setAppState={setAppState}
           />
         );
+      case 'activity-log':
+        return <ActivityLogView />;
       default:
         return <Dashboard onSelectTicket={handleSelectTicket} onShowToast={showToast} />;
     }

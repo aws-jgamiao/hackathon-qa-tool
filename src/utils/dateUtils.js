@@ -5,13 +5,17 @@ export const formatDate = (isoString) => {
     console.warn('Invalid date:', isoString);
     return '-';
   }
-  return date.toLocaleDateString('en-AU', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthName = monthNames[date.getMonth()];
+
+  return `${day} ${monthName} ${year}, ${hours}:${minutes}`;
 };
 
 export const formatDateShort = (isoString) => {
@@ -21,11 +25,13 @@ export const formatDateShort = (isoString) => {
     console.warn('Invalid date:', isoString);
     return '-';
   }
-  return date.toLocaleDateString('en-AU', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+
+  const year = date.getFullYear();
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthName = monthNames[date.getMonth()];
+
+  return `${day} ${monthName} ${year}`;
 };
 
 export const formatTime = (isoString) => {
@@ -35,8 +41,9 @@ export const formatTime = (isoString) => {
     console.warn('Invalid date:', isoString);
     return '-';
   }
-  return date.toLocaleTimeString('en-AU', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${hours}:${minutes}`;
 };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Save, Check, AlertCircle, FileText } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
+import { exportTestRunToPDF } from '../utils/exportUtils';
 
 export default function SimpleTestRunExecution({
   ticket,
@@ -168,7 +169,18 @@ export default function SimpleTestRunExecution({
             <AlertCircle size={16} />
             Mark as QA Failed
           </button>
-          <button className="btn btn-secondary" onClick={() => onShowToast('Exporting...')}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              try {
+                exportTestRunToPDF(ticket, testRun, testCase);
+                onShowToast('Test run exported to PDF', 'success');
+              } catch (err) {
+                console.error('Failed to export test run to PDF:', err);
+                onShowToast('Failed to export test run to PDF', 'error');
+              }
+            }}
+          >
             <FileText size={16} />
             Export PDF
           </button>

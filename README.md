@@ -1,160 +1,190 @@
-# Flowlogic AI Mobile QA Workspace
+# Flowlogic QA Assistant
 
-A professional web application for managing mobile QA testing workflows with Supabase database integration. Includes Jira ticket management, test case creation, test run execution, and comprehensive cycle tracking.
+A comprehensive mobile QA testing workspace for managing test cases, test runs, and QA activities for iOS and Android applications. Built with React, Vite, Supabase, and Claude AI.
 
 ## Features
 
-### Core Functionality
-- **Jira Ticket Management** - Add, view, and manage Jira tickets with validation
-- **Test Case Management** - Create, edit, approve test cases with version control
-- **Test Run Execution** - Simple, clean interface for executing test runs
-- **Platform Separation** - Automatically creates separate test runs for iOS/Android
-- **Cycle Tracking** - Version tracking (V1, V2, V3) with QA Failed retest creation
-- **Data Persistence** - Supabase database integration
+✨ **Smart Test Case Generation**
+- AI-powered test case generation using Claude
+- One-click test case creation from ticket acceptance criteria
+- Support for custom test tables and complex scenarios
 
-### UI/UX
-- Clean, minimal design with light theme
-- Three-dot action menus with portal-based positioning
-- Status badges with semantic colors
-- Loading and error states
-- Toast notifications
+🧪 **Complete Test Management**
+- Create, edit, and approve test cases
+- Execute test runs with detailed reporting
+- Track test results (Passed, Failed, QA Failed, Blocked)
+- Version control for retesting cycles
+- PDF and Excel export functionality
+
+📱 **Platform Support**
+- iOS and Android platform-specific testing
+- Platform selection per test case and run
+- Separate test execution paths
+
+📊 **Activity Logging & Tracking**
+- Global activity log across all tickets
+- Real-time activity tracking for team visibility
+- Filterable by ticket and action type
+- Pagination support for large datasets
+
+🎨 **Dark Mode**
+- Full dark mode support with persistent preferences
+- Smooth theme switching
+- Optimized for extended testing sessions
+
+🔗 **Jira Integration**
+- Link test cases to Jira tickets
+- Direct access to Jira ticket details
+- Centralized ticket management
 
 ## Tech Stack
 
-- **Frontend**: React 18 with Hooks
-- **Bundler**: Vite
+- **Frontend**: React 18 + Vite
+- **Styling**: CSS3 with CSS Variables (supports light/dark modes)
 - **Database**: Supabase (PostgreSQL)
-- **UI Components**: Lucide Icons
-- **Testing**: Vitest + Testing Library
+- **AI**: Claude API (claude-haiku-4-5)
+- **Backend**: Express.js (Vercel Serverless)
+- **Export**: jsPDF, XLSX
 
-## Quick Start
+## Getting Started
 
-### 1. Clone and Install
+### Prerequisites
+- Node.js 16+ 
+- npm or yarn
+- Supabase account
+- Anthropic Claude API key
 
+### Local Development
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/YOUR_USERNAME/hackathon.git
+cd hackathon
+```
+
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-### 2. Set Up Supabase
+3. **Set up environment variables**
+Create a `.env` file in the root directory:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ANTHROPIC_API_KEY=your_claude_api_key
+```
 
-1. Create a free account at https://supabase.com
-2. Create a new project
-3. Copy your URL and anon key
-4. Create `.env` file:
-   ```
-   VITE_SUPABASE_URL=your-url
-   VITE_SUPABASE_ANON_KEY=your-key
-   ```
-
-### 3. Set Up Database
-
-1. Go to Supabase SQL Editor
-2. Run all SQL from `DATABASE_SETUP.md`
-3. This creates all required tables
-
-### 4. Run Development Server
-
+4. **Start local development**
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:5173`
+The app will run at `http://localhost:5173` and the backend at `http://localhost:3001`
 
-## Documentation
+## Deployment
 
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Step-by-step setup instructions
-- **[DATABASE_SETUP.md](DATABASE_SETUP.md)** - Complete database schema
+### Backend (Vercel)
+1. Create a Vercel account at https://vercel.com
+2. Connect your GitHub repository
+3. Add environment variable: `VITE_ANTHROPIC_API_KEY`
+4. Deploy automatically from main branch
+
+### Frontend (GitHub Pages)
+1. Update `vite.config.js` base path to your repo name
+2. Run `npm run build`
+3. Run `npm run deploy`
+4. Access at `https://YOUR_USERNAME.github.io/hackathon`
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 
 ## Project Structure
 
 ```
-src/
-├── lib/
-│   └── supabase.js           # Database client and services
-├── components/               # Reusable UI components
-├── views/                    # Main page views
-├── utils/                    # Utility functions
-├── test/                     # Test suite
-├── App.jsx                   # Root component
-├── main.jsx                  # Entry point
-└── index.css                 # Global styles
+hackathon/
+├── src/
+│   ├── components/        # React components
+│   ├── views/            # Page views
+│   ├── lib/              # Services (Supabase, Claude)
+│   ├── hooks/            # Custom React hooks
+│   ├── utils/            # Utility functions
+│   ├── App.jsx           # Main app component
+│   └── index.css         # Global styles with CSS variables
+├── api/                  # Vercel serverless functions
+├── backend/              # Express.js backend (local dev only)
+├── public/               # Static assets
+├── vercel.json          # Vercel configuration
+└── vite.config.js       # Vite configuration
 ```
 
-## Key Features Implemented
+## Key Features Explained
 
-### Data Management
-- ✅ Supabase integration with PostgreSQL
-- ✅ Duplicate validation (Jira Key and Link)
-- ✅ Real data persistence
-- ✅ Removed all mock data
+### Test Case Generation
+- Create a ticket with acceptance criteria
+- AI automatically generates detailed test cases
+- One test case per acceptance criterion
+- Includes pre-conditions, steps, and expected results
 
 ### Test Execution
-- ✅ Simple, focused test run interface
-- ✅ Clean table with essential columns only
-- ✅ Actual Result textarea
-- ✅ Status dropdown (Not Run, Passed, Failed, etc.)
-- ✅ Save, Mark Passed, Mark QA Failed buttons
+- Execute test cases on specific platforms
+- Track actual results vs expected results
+- Mark tests as Passed, Failed, or QA Failed
+- Create retest cycles for failed tests
 
-### Platform Management
-- ✅ iOS/Android separate test runs
-- ✅ Each platform has independent version tracking
-- ✅ Automatic test run creation per platform on approval
-
-### Validation & Safety
-- ✅ Duplicate Jira Key prevention
-- ✅ Duplicate Jira Link prevention
-- ✅ Required field validation
-- ✅ Loading and error states
-- ✅ Environment variable checks
+### Activity Tracking
+- Every action is logged (ticket creation, status changes, test approvals, etc.)
+- Filter logs by ticket or action type
+- Pagination for easy navigation
+- Real-time team visibility
 
 ## Database Schema
 
-Four main tables:
-- **tickets** - Jira tickets with status and links
-- **test_cases** - Test cases per ticket
-- **test_runs** - Test execution records with version tracking
-- **test_run_results** - Individual step results
-
-See `DATABASE_SETUP.md` for complete schema.
-
-## Testing
-
-```bash
-npm test
-```
-
-## Build for Production
-
-```bash
-npm run build
-```
-
-Output goes to `dist/` directory.
+Key tables:
+- **tickets** - Main test tickets linked to Jira
+- **test_cases** - Test cases with status (Pending/Approved)
+- **test_runs** - Execution records for test cases
+- **test_run_results** - Detailed step results
+- **activity_logs** - Event tracking for all actions
 
 ## Environment Variables
 
-Required:
-- `VITE_SUPABASE_URL` - Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anon key
+| Variable | Description |
+|----------|-------------|
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
+| `VITE_ANTHROPIC_API_KEY` | Your Claude API key |
 
-Never commit `.env` file - it's in `.gitignore`
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test locally
+4. Create a pull request
 
 ## Troubleshooting
 
-**"Missing Supabase environment variables"**
-- Create `.env` file with your credentials
-- Restart dev server
+**Issue: Test case generation fails**
+- Verify Claude API key is valid
+- Check Supabase connection
+- Review browser console for error details
 
-**"Failed to load tickets"**
-- Check database tables exist
-- Check Supabase URL and key are correct
-- See DATABASE_SETUP.md
+**Issue: Dark mode not working**
+- Clear browser localStorage
+- Check CSS variables are defined in index.css
 
-**No data appears**
-- Add a ticket first
-- Check Supabase dashboard for data
-- Check browser console for errors
+**Issue: Vercel deployment errors**
+- Check build logs at vercel.com/dashboard
+- Verify environment variables are set
+- Ensure vite.config.js base path matches repo name
 
 ## License
 
-MIT
+Private project for Flowlogic
+
+## Support
+
+For issues and questions, check the [DEPLOYMENT.md](./DEPLOYMENT.md) guide or review the codebase documentation.
+
+---
+
+**Built with ❤️ for mobile QA teams**

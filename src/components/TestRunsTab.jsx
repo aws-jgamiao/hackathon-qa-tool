@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { MoreVertical } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import ActionMenu from './ActionMenu';
 
@@ -8,7 +7,8 @@ export default function TestRunsTab({
   testRuns,
   onSelectTestRun,
   onShowToast,
-  setCurrentView
+  setCurrentView,
+  onDelete
 }) {
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRefs = useRef({});
@@ -43,21 +43,10 @@ export default function TestRunsTab({
         onSelectTestRun(testRun);
         setCurrentView('execute-test-run');
         break;
-      case 'Execute / Manage Test Run':
-        onSelectTestRun(testRun);
-        setCurrentView('execute-test-run');
-        break;
-      case 'Mark as QA Failed':
-        onShowToast('Test run marked as QA Failed', 'success');
-        break;
-      case 'Mark as Approved / Passed':
-        onShowToast('Test run marked as approved', 'success');
-        break;
-      case 'Export to PDF':
-        onShowToast('Exporting to PDF...', 'success');
-        break;
-      case 'Export to Excel':
-        onShowToast('Exporting to Excel...', 'success');
+      case 'Delete Test Run':
+        if (confirm('Are you sure you want to delete this test run?')) {
+          onDelete(testRun.id);
+        }
         break;
     }
     setOpenMenuId(null);
@@ -66,11 +55,7 @@ export default function TestRunsTab({
   const actions = [
     { label: 'View Test Run', icon: '👁️' },
     { label: 'Edit Test Run', icon: '✏️' },
-    { label: 'Execute / Manage Test Run', icon: '▶️' },
-    { label: 'Mark as QA Failed', icon: '❌' },
-    { label: 'Mark as Approved / Passed', icon: '✅' },
-    { label: 'Export to PDF', icon: '📄' },
-    { label: 'Export to Excel', icon: '📊' }
+    { label: 'Delete Test Run', icon: '🗑️', danger: true }
   ];
 
   if (!testRuns || testRuns.length === 0) {
@@ -93,7 +78,7 @@ export default function TestRunsTab({
         <thead>
           <tr>
             <th>Run ID</th>
-            <th>Test Case</th>
+            <th>Test Case ID</th>
             <th>Platform</th>
             <th>Version / Cycle</th>
             <th>Status</th>
@@ -115,7 +100,7 @@ export default function TestRunsTab({
               <td style={{ fontWeight: '500', color: '#0066cc' }}>
                 {testRun.id}
               </td>
-              <td>{testRun.testCaseTitle}</td>
+              <td>{testRun.test_case_id}</td>
               <td>{testRun.platform}</td>
               <td>{testRun.version}</td>
               <td>
@@ -124,15 +109,15 @@ export default function TestRunsTab({
                 </span>
               </td>
               <td>
-                {testRun.qaFailedCount > 0 ? (
-                  <span className="badge badge-error">{testRun.qaFailedCount}</span>
+                {testRun.qa_failed_count > 0 ? (
+                  <span className="badge badge-error">{testRun.qa_failed_count}</span>
                 ) : (
                   <span>0</span>
                 )}
               </td>
-              <td>{formatDate(testRun.executedAt)}</td>
+              <td>{formatDate(testRun.executed_at)}</td>
               <td onClick={(e) => e.stopPropagation()}>
-                <div className="relative">
+                <div style={{ position: 'relative', display: 'inline-block' }}>
                   <button
                     ref={(el) => { menuRefs.current[testRun.id] = el; }}
                     className="btn-icon"
@@ -141,7 +126,7 @@ export default function TestRunsTab({
                       setOpenMenuId(openMenuId === testRun.id ? null : testRun.id);
                     }}
                   >
-                    <MoreVertical size={18} />
+                    ⋯
                   </button>
                   {openMenuId === testRun.id && (
                     <ActionMenu
