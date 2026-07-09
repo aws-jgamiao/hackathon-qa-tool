@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
-import { Plus, MoreVertical, Copy, Check, FileText, Trash2, Zap } from 'lucide-react';
+import { Plus, MoreVertical } from 'lucide-react';
 import { formatDate } from '../utils/dateUtils';
 import ActionMenu from './ActionMenu';
-import GenerateTestCasesModal from './GenerateTestCasesModal';
 
 export default function TestCasesTab({
   ticket,
@@ -13,7 +12,6 @@ export default function TestCasesTab({
   setCurrentView
 }) {
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const menuRefs = useRef({});
 
   const hasTestCases = testCases && testCases.length > 0;
@@ -85,74 +83,38 @@ export default function TestCasesTab({
 
   if (!hasTestCases) {
     return (
-      <>
-        {showGenerateModal && (
-          <GenerateTestCasesModal
-            ticket={ticket}
-            onClose={() => setShowGenerateModal(false)}
-            onAddTestCases={(cases) => setTestCases([...testCases, ...cases])}
-            onShowToast={onShowToast}
-          />
-        )}
-        <div className="card">
-          <div className="empty-state">
-            <div className="empty-state-icon">📋</div>
-            <h3 className="empty-state-title">No test cases yet</h3>
-            <p className="empty-state-text">
-              Create your first test case to get started
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setCurrentView('add-test-case');
-                }}
-              >
-                <Plus size={18} />
-                Add Test Case
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowGenerateModal(true)}
-              >
-                <Zap size={18} />
-                Generate with AI
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <div>
-      {showGenerateModal && (
-        <GenerateTestCasesModal
-          ticket={ticket}
-          onClose={() => setShowGenerateModal(false)}
-          onAddTestCases={(cases) => setTestCases([...testCases, ...cases])}
-          onShowToast={onShowToast}
-        />
-      )}
-      <div className="action-row">
-        <div></div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setShowGenerateModal(true)}
-          >
-            <Zap size={18} />
-            Generate with AI
-          </button>
+      <div className="card">
+        <div className="empty-state">
+          <div className="empty-state-icon">📋</div>
+          <h3 className="empty-state-title">No test cases yet</h3>
+          <p className="empty-state-text">
+            Test cases were auto-generated when the ticket was created. They will appear here once loaded.
+          </p>
           <button
             className="btn btn-primary"
-            onClick={() => setCurrentView('add-test-case')}
+            onClick={() => {
+              setCurrentView('add-test-case');
+            }}
           >
             <Plus size={18} />
             Add Test Case
           </button>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="action-row">
+        <div></div>
+        <button
+          className="btn btn-primary"
+          onClick={() => setCurrentView('add-test-case')}
+        >
+          <Plus size={18} />
+          Add Test Case
+        </button>
       </div>
 
       <div className="table-container">

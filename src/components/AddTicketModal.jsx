@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Loader } from 'lucide-react';
-import { ticketService } from '../lib/supabase';
+import { ticketService, testCaseService } from '../lib/supabase';
+import { generateTestCases } from '../lib/claudeService';
 
 export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   const [form, setForm] = useState({
@@ -58,8 +59,34 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
         updated_at: new Date().toISOString()
       });
 
+      // Generate and save test cases
+      onShowToast('Generating test cases with AI...', 'info');
+      try {
+        const generatedCases = await generateTestCases(newTicket);
+
+        // Save test cases to database
+        for (const testCase of generatedCases) {
+          await testCaseService.create({
+            ticket_id: newTicket.id,
+            title: testCase.title,
+            component: testCase.component,
+            platform: testCase.platform,
+            steps: testCase.steps,
+            expected_result: testCase.expectedResult,
+            preconditions: testCase.preconditions || '',
+            priority: testCase.priority || 'Medium',
+            status: 'Draft',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
+
+        onShowToast(`Ticket created with ${generatedCases.length} test cases`, 'success');
+      } catch (genErr) {
+        onShowToast(`Ticket created, but test case generation failed: ${genErr.message}`, 'warning');
+      }
+
       onAdd(newTicket);
-      onShowToast('Ticket added successfully', 'success');
     } catch (err) {
       onShowToast('Error adding ticket: ' + err.message, 'error');
     } finally {
