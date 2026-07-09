@@ -1,98 +1,160 @@
 # Flowlogic AI Mobile QA Workspace
 
-A standalone web application for managing mobile QA testing workflows, including Jira ticket management, test case creation, and test run execution.
+A professional web application for managing mobile QA testing workflows with Supabase database integration. Includes Jira ticket management, test case creation, test run execution, and comprehensive cycle tracking.
 
 ## Features
 
-- **Jira Ticket Dashboard** - View and manage Jira tickets
-- **Test Case Management** - Create, edit, and approve test cases
-- **Test Run Execution** - Execute and track test runs with custom tables
-- **Cycle Tracking** - Track test cycles and retest runs
-- **QA Failed Tracking** - Mark runs as QA failed and create retest runs
-- **Custom Tables** - Add custom data tables to test cases
-- **Export** - Export test cases and runs to PDF/Excel (mock)
+### Core Functionality
+- **Jira Ticket Management** - Add, view, and manage Jira tickets with validation
+- **Test Case Management** - Create, edit, approve test cases with version control
+- **Test Run Execution** - Simple, clean interface for executing test runs
+- **Platform Separation** - Automatically creates separate test runs for iOS/Android
+- **Cycle Tracking** - Version tracking (V1, V2, V3) with QA Failed retest creation
+- **Data Persistence** - Supabase database integration
+
+### UI/UX
+- Clean, minimal design with light theme
+- Three-dot action menus with portal-based positioning
+- Status badges with semantic colors
+- Loading and error states
+- Toast notifications
 
 ## Tech Stack
 
-- React 18
-- Vite
-- Lucide Icons
-- Vitest
+- **Frontend**: React 18 with Hooks
+- **Bundler**: Vite
+- **Database**: Supabase (PostgreSQL)
+- **UI Components**: Lucide Icons
+- **Testing**: Vitest + Testing Library
 
-## Getting Started
+## Quick Start
 
-### Installation
+### 1. Clone and Install
 
 ```bash
 npm install
 ```
 
-### Development
+### 2. Set Up Supabase
+
+1. Create a free account at https://supabase.com
+2. Create a new project
+3. Copy your URL and anon key
+4. Create `.env` file:
+   ```
+   VITE_SUPABASE_URL=your-url
+   VITE_SUPABASE_ANON_KEY=your-key
+   ```
+
+### 3. Set Up Database
+
+1. Go to Supabase SQL Editor
+2. Run all SQL from `DATABASE_SETUP.md`
+3. This creates all required tables
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
 ```
 
-The app will open at `http://localhost:5173`
+Visit `http://localhost:5173`
 
-### Testing
+## Documentation
 
-```bash
-npm test
-```
-
-### Build
-
-```bash
-npm run build
-```
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Step-by-step setup instructions
+- **[DATABASE_SETUP.md](DATABASE_SETUP.md)** - Complete database schema
 
 ## Project Structure
 
 ```
 src/
-├── components/           # Reusable UI components
-├── views/               # Main page views
-├── utils/               # Utility functions
-├── test/                # Test files
-├── App.jsx              # Root component
-├── main.jsx             # Entry point
-├── index.css            # Global styles
-└── mockData.js          # Mock data
+├── lib/
+│   └── supabase.js           # Database client and services
+├── components/               # Reusable UI components
+├── views/                    # Main page views
+├── utils/                    # Utility functions
+├── test/                     # Test suite
+├── App.jsx                   # Root component
+├── main.jsx                  # Entry point
+└── index.css                 # Global styles
 ```
 
-## Mock Data
+## Key Features Implemented
 
-The application uses mock data for:
-- 3 Jira tickets (FLOWDEL-2686, FLOWDEL-2929, FLOWDEL-3010)
-- Multiple test cases with different statuses
-- Test runs with cycle tracking
+### Data Management
+- ✅ Supabase integration with PostgreSQL
+- ✅ Duplicate validation (Jira Key and Link)
+- ✅ Real data persistence
+- ✅ Removed all mock data
 
-## Features Implemented
+### Test Execution
+- ✅ Simple, focused test run interface
+- ✅ Clean table with essential columns only
+- ✅ Actual Result textarea
+- ✅ Status dropdown (Not Run, Passed, Failed, etc.)
+- ✅ Save, Mark Passed, Mark QA Failed buttons
 
-- ✅ Jira ticket dashboard with search and filtering
-- ✅ Ticket workspace with test cases and test runs tabs
-- ✅ Add/edit test cases with custom tables
-- ✅ View test case details
-- ✅ Test case approval workflow
-- ✅ Automatic test run creation on approval
-- ✅ Execute and manage test runs
-- ✅ View test run details with cycle tracking
-- ✅ QA Failed tracking and retest creation
-- ✅ Cycle tracking (V1, V2, V3, etc.)
-- ✅ Custom table support in test cases
-- ✅ Three-dot action menus
-- ✅ Status badges
-- ✅ Empty states
-- ✅ Toast notifications
-- ✅ Mock export to PDF/Excel
-- ✅ Comprehensive test suite
+### Platform Management
+- ✅ iOS/Android separate test runs
+- ✅ Each platform has independent version tracking
+- ✅ Automatic test run creation per platform on approval
 
-## Future Enhancements
+### Validation & Safety
+- ✅ Duplicate Jira Key prevention
+- ✅ Duplicate Jira Link prevention
+- ✅ Required field validation
+- ✅ Loading and error states
+- ✅ Environment variable checks
 
-- Integration with Jira API
-- Real PDF/Excel export
-- User authentication
-- Test data persistence
-- Advanced filtering and search
-- Bulk operations
+## Database Schema
+
+Four main tables:
+- **tickets** - Jira tickets with status and links
+- **test_cases** - Test cases per ticket
+- **test_runs** - Test execution records with version tracking
+- **test_run_results** - Individual step results
+
+See `DATABASE_SETUP.md` for complete schema.
+
+## Testing
+
+```bash
+npm test
+```
+
+## Build for Production
+
+```bash
+npm run build
+```
+
+Output goes to `dist/` directory.
+
+## Environment Variables
+
+Required:
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anon key
+
+Never commit `.env` file - it's in `.gitignore`
+
+## Troubleshooting
+
+**"Missing Supabase environment variables"**
+- Create `.env` file with your credentials
+- Restart dev server
+
+**"Failed to load tickets"**
+- Check database tables exist
+- Check Supabase URL and key are correct
+- See DATABASE_SETUP.md
+
+**No data appears**
+- Add a ticket first
+- Check Supabase dashboard for data
+- Check browser console for errors
+
+## License
+
+MIT
