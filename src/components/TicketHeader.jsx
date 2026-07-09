@@ -24,9 +24,9 @@ export default function TicketHeader({ ticket }) {
             {ticket.name}
           </p>
         </div>
-        {ticket.jiraLink ? (
+        {ticket.jira_link ? (
           <a
-            href={ticket.jiraLink}
+            href={ticket.jira_link}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-secondary"

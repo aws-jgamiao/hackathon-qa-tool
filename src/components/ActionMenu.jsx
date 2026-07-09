@@ -8,15 +8,20 @@ export default function ActionMenu({ actions, onAction, triggerRef }) {
   useEffect(() => {
     if (triggerRef?.current && menuRef.current) {
       const triggerRect = triggerRef.current.getBoundingClientRect();
-      const menuRect = menuRef.current.getBoundingClientRect();
 
-      let top = triggerRect.bottom + window.scrollY + 8;
-      let left = triggerRect.right - menuRect.width + window.scrollX;
+      // Position to the right of the trigger button
+      let top = triggerRect.top + window.scrollY;
+      let left = triggerRect.right + window.scrollX + 8;
 
-      // Ensure menu doesn't go off screen
-      if (left < 0) left = triggerRect.left + window.scrollX;
-      if (top + menuRect.height > window.innerHeight) {
-        top = triggerRect.top + window.scrollY - menuRect.height - 8;
+      // If menu goes off right edge, position to the left
+      if (left + 200 > window.innerWidth) {
+        left = triggerRect.left + window.scrollX - 200 - 8;
+      }
+
+      // Keep menu within vertical bounds
+      const menuHeight = menuRef.current.offsetHeight;
+      if (top + menuHeight > window.innerHeight) {
+        top = window.innerHeight - menuHeight - 10;
       }
 
       setPosition({ top, left });

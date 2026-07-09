@@ -170,7 +170,7 @@ export default function Dashboard({ onSelectTicket, onShowToast }) {
                     <span>0</span>
                   )}
                 </td>
-                <td>{formatDate(ticket.updatedAt)}</td>
+                <td>{formatDate(ticket.updated_at)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="relative">
                     <button
