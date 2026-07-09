@@ -6,41 +6,44 @@ export default function ActionMenu({ actions, onAction, triggerRef }) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
-    if (triggerRef?.current) {
-      // Use a small delay to ensure menuRef is measured
-      const timer = setTimeout(() => {
-        if (menuRef.current) {
-          const triggerRect = triggerRef.current.getBoundingClientRect();
-          const menuHeight = menuRef.current.offsetHeight;
-          const menuWidth = menuRef.current.offsetWidth;
+    const updatePosition = () => {
+      if (triggerRef?.current && menuRef?.current) {
+        const triggerRect = triggerRef.current.getBoundingClientRect();
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
 
-          // Position directly to the right of button, aligned with top
-          let top = triggerRect.top + window.scrollY - 4;
-          let left = triggerRect.right + window.scrollX + 4;
+        // Position to the right of button, below it
+        const top = triggerRect.bottom + scrollY + 4;
+        const left = triggerRect.left + scrollX;
 
-          // If menu goes off right edge, position to the left of button
-          if (left + menuWidth > window.innerWidth - 10) {
-            left = triggerRect.left + window.scrollX - menuWidth - 4;
-          }
+        setPosition({ top, left });
+      }
+    };
 
-          // If menu goes below viewport, position above button
-          if (top + menuHeight > window.innerHeight - 10) {
-            top = triggerRect.bottom + window.scrollY - menuHeight - 4;
-          }
+    // Initial position
+    updatePosition();
 
-          setPosition({ top, left });
-        }
-      }, 0);
+    // Update on scroll
+    window.addEventListener('scroll', updatePosition);
+    window.addEventListener('resize', updatePosition);
 
-      return () => clearTimeout(timer);
-    }
+    return () => {
+      window.removeEventListener('scroll', updatePosition);
+      window.removeEventListener('resize', updatePosition);
+    };
   }, [triggerRef]);
 
   const menuContent = (
     <div
       ref={menuRef}
       className="dropdown-menu"
-      style={{ position: 'fixed', ...position, zIndex: 10000, minWidth: '180px' }}
+      style={{
+        position: 'fixed',
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        zIndex: 10000,
+        minWidth: '180px'
+      }}
     >
       {actions.map((action, index) => (
         <div
