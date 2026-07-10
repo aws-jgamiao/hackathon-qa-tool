@@ -18,8 +18,10 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   });
 
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(['']);
-  const [acInputMode, setAcInputMode] = useState('single'); // 'single' or 'paste'
+  const [acInputMode, setAcInputMode] = useState('fields'); // 'fields', 'textbox', or 'paste'
+  const [acAutoNumber, setAcAutoNumber] = useState(true); // true = "AC1:", false = plain text
   const [pasteAcText, setPasteAcText] = useState('');
+  const [singleBoxText, setSingleBoxText] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +33,8 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   };
 
   const handleAddCriteria = () => {
-    setAcceptanceCriteria([...acceptanceCriteria, '']);
+    const newCriteria = acAutoNumber ? `AC${acceptanceCriteria.length + 1}: ` : '';
+    setAcceptanceCriteria([...acceptanceCriteria, newCriteria]);
   };
 
   const handleRemoveCriteria = (index) => {
@@ -44,14 +47,13 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
     setAcceptanceCriteria(updated);
   };
 
-  const parsePasteText = () => {
-    const text = pasteAcText.trim();
+  const parseText = (inputText, mode) => {
+    const text = inputText.trim();
     if (!text) {
-      onShowToast('Please paste acceptance criteria text', 'error');
+      onShowToast('Please enter acceptance criteria text', 'error');
       return;
     }
 
-    // Split by "Scenario:" or by numbered lines (e.g., "7. ")
     let criteria = [];
 
     // Try splitting by "Scenario:"
@@ -70,9 +72,23 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
       criteria = [text];
     }
 
+    // Add auto-numbering if enabled
+    if (acAutoNumber) {
+      criteria = criteria.map((c, i) => {
+        const isAlreadyNumbered = /^AC\s?\d+:/i.test(c.trim());
+        return isAlreadyNumbered ? c : `AC${i + 1}: ${c}`;
+      });
+    }
+
     setAcceptanceCriteria(criteria);
-    setPasteAcText('');
-    setAcInputMode('single');
+
+    if (mode === 'paste') {
+      setPasteAcText('');
+    } else {
+      setSingleBoxText('');
+    }
+
+    setAcInputMode('fields');
     onShowToast(`Parsed ${criteria.length} acceptance criteria`, 'success');
   };
 
@@ -266,24 +282,52 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
         </div>
 
         <div className="form-group">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <label>Acceptance Criteria</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <label>Acceptance Criteria</label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={acAutoNumber}
+                  onChange={(e) => setAcAutoNumber(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+                Auto-number AC
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <button
                 type="button"
-                onClick={() => setAcInputMode('single')}
+                onClick={() => setAcInputMode('fields')}
                 style={{
                   padding: '6px 12px',
                   fontSize: '12px',
-                  background: acInputMode === 'single' ? 'var(--accent-color)' : 'var(--bg-hover)',
-                  color: acInputMode === 'single' ? 'white' : 'var(--text-primary)',
+                  background: acInputMode === 'fields' ? 'var(--accent-color)' : 'var(--bg-hover)',
+                  color: acInputMode === 'fields' ? 'white' : 'var(--text-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
               >
-                Single AC
+                Separate Fields
+              </button>
+              <button
+                type="button"
+                onClick={() => setAcInputMode('textbox')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  background: acInputMode === 'textbox' ? 'var(--accent-color)' : 'var(--bg-hover)',
+                  color: acInputMode === 'textbox' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Single TextBox
               </button>
               <button
                 type="button"
@@ -299,12 +343,12 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
                   fontWeight: '500'
                 }}
               >
-                Paste Multiple
+                Paste & Parse
               </button>
             </div>
           </div>
 
-          {acInputMode === 'single' ? (
+          {acInputMode === 'fields' ? (
             <div style={{ marginBottom: '12px' }}>
               <table style={{ width: '100%' }}>
                 <tbody>
@@ -315,7 +359,7 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
                           type="text"
                           value={criteria}
                           onChange={(e) => handleCriteriaChange(index, e.target.value)}
-                          placeholder={`AC ${index + 1}: e.g., User can log in with valid credentials`}
+                          placeholder={acAutoNumber ? `AC ${index + 1}: e.g., User can log in with valid credentials` : `e.g., User can log in with valid credentials`}
                           style={{
                             width: '100%',
                             padding: '8px 12px',
@@ -354,6 +398,48 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
                 </tbody>
               </table>
             </div>
+          ) : acInputMode === 'textbox' ? (
+            <div style={{ marginBottom: '12px' }}>
+              <textarea
+                value={singleBoxText}
+                onChange={(e) => setSingleBoxText(e.target.value)}
+                placeholder={`Enter all acceptance criteria here, separated by blank lines:
+
+First criterion text...
+
+Second criterion text...
+
+Third criterion text...`}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  minHeight: '150px',
+                  resize: 'vertical'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => parseText(singleBoxText, 'textbox')}
+                style={{
+                  marginTop: '12px',
+                  padding: '8px 16px',
+                  background: 'var(--accent-color)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Parse & Add Criteria
+              </button>
+            </div>
           ) : (
             <div style={{ marginBottom: '12px' }}>
               <textarea
@@ -386,7 +472,7 @@ Or separated by blank lines...`}
               />
               <button
                 type="button"
-                onClick={parsePasteText}
+                onClick={() => parseText(pasteAcText, 'paste')}
                 style={{
                   marginTop: '12px',
                   padding: '8px 16px',
