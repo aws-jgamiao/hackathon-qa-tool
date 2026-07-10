@@ -19,7 +19,6 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
 
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(['']);
   const [acInputMode, setAcInputMode] = useState('fields'); // 'fields', 'textbox', or 'paste'
-  const [acAutoNumber, setAcAutoNumber] = useState(true); // true = "AC1:", false = plain text
   const [pasteAcText, setPasteAcText] = useState('');
   const [singleBoxText, setSingleBoxText] = useState('');
   const [errors, setErrors] = useState({});
@@ -33,7 +32,7 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   };
 
   const handleAddCriteria = () => {
-    const newCriteria = acAutoNumber ? `AC${acceptanceCriteria.length + 1}: ` : '';
+    const newCriteria = `AC${acceptanceCriteria.length + 1}: `;
     setAcceptanceCriteria([...acceptanceCriteria, newCriteria]);
   };
 
@@ -72,13 +71,11 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
       criteria = [text];
     }
 
-    // Add auto-numbering if enabled
-    if (acAutoNumber) {
-      criteria = criteria.map((c, i) => {
-        const isAlreadyNumbered = /^AC\s?\d+:/i.test(c.trim());
-        return isAlreadyNumbered ? c : `AC${i + 1}: ${c}`;
-      });
-    }
+    // Always add auto-numbering
+    criteria = criteria.map((c, i) => {
+      const isAlreadyNumbered = /^AC\s?\d+:/i.test(c.trim());
+      return isAlreadyNumbered ? c : `AC${i + 1}: ${c}`;
+    });
 
     setAcceptanceCriteria(criteria);
 
@@ -283,18 +280,7 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
 
         <div className="form-group">
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <label>Acceptance Criteria</label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={acAutoNumber}
-                  onChange={(e) => setAcAutoNumber(e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                Auto-number AC
-              </label>
-            </div>
+            <label style={{ marginBottom: '12px' }}>Acceptance Criteria</label>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <button
@@ -359,7 +345,7 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
                           type="text"
                           value={criteria}
                           onChange={(e) => handleCriteriaChange(index, e.target.value)}
-                          placeholder={acAutoNumber ? `AC ${index + 1}: e.g., User can log in with valid credentials` : `e.g., User can log in with valid credentials`}
+                          placeholder={`AC ${index + 1}: e.g., User can log in with valid credentials`}
                           style={{
                             width: '100%',
                             padding: '8px 12px',
