@@ -71,6 +71,8 @@ export default function ActivityLogView() {
       'test_case_deleted': 'Test Case Deleted',
       'test_case_approved': 'Test Case Approved',
       'test_run_created': 'Test Run Created',
+      'test_run_passed': 'Test Run Passed',
+      'test_run_failed': 'Test Run Failed',
       'test_run_deleted': 'Test Run Deleted'
     };
     return labels[actionType] || actionType.replace(/_/g, ' ').toUpperCase();
@@ -88,7 +90,10 @@ export default function ActivityLogView() {
       case 'test_run_deleted':
         return '#c62828';
       case 'test_case_approved':
+      case 'test_run_passed':
         return '#2e7d32';
+      case 'test_run_failed':
+        return '#f57c00';
       default:
         return '#666';
     }
@@ -164,6 +169,8 @@ export default function ActivityLogView() {
               <option value="test_case_approved">Test Case Approved</option>
               <option value="test_case_deleted">Test Case Deleted</option>
               <option value="test_run_created">Test Run Created</option>
+              <option value="test_run_passed">Test Run Passed</option>
+              <option value="test_run_failed">Test Run Failed</option>
               <option value="test_run_deleted">Test Run Deleted</option>
             </select>
           </div>

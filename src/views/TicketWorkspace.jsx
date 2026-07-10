@@ -385,6 +385,15 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                 }
                 setSelectedTestRun(failed);
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_failed',
+                  `Test run ${failed.id} marked as QA Failed (Attempt ${failed.qa_failed_count})`,
+                  failed.id,
+                  'test_run'
+                );
+
                 onShowToast('Test run marked as QA Failed', 'success');
                 setCurrentView('view-test-run');
               } catch (err) {
@@ -402,6 +411,15 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                 }
                 setSelectedTestRun(approved);
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_passed',
+                  `Test run ${approved.id} marked as Passed`,
+                  approved.id,
+                  'test_run'
+                );
+
                 onShowToast('Test run approved', 'success');
                 setCurrentView('view-test-run');
               } catch (err) {
@@ -437,6 +455,15 @@ export default function TicketWorkspace({
                   updated_at: new Date().toISOString()
                 });
 
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_created',
+                  `Retest run ${saved.id} created (${saved.version})`,
+                  saved.id,
+                  'test_run'
+                );
+
                 onShowToast('Retest run created', 'success');
                 setSelectedTestRun(saved);
                 setCurrentView('view-test-run');
@@ -455,6 +482,15 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                 }
                 setSelectedTestRun(failed);
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_failed',
+                  `Test run ${failed.id} marked as QA Failed (Attempt ${failed.qa_failed_count})`,
+                  failed.id,
+                  'test_run'
+                );
+
                 onShowToast('Test run marked as QA Failed', 'success');
                 setCurrentView('view-test-run');
               } catch (err) {
@@ -492,6 +528,15 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                 }
                 setSelectedTestRun(approved);
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_passed',
+                  `Test run ${approved.id} marked as Passed`,
+                  approved.id,
+                  'test_run'
+                );
+
                 onShowToast('Test run approved', 'success');
                 setCurrentView('view-test-run');
               } catch (err) {
@@ -510,6 +555,15 @@ export default function TicketWorkspace({
                   test_run_count: newRuns.length,
                   updated_at: new Date().toISOString()
                 });
+
+                // Log activity
+                await activityLogService.create(
+                  ticket.id,
+                  'test_run_deleted',
+                  `Test run deleted: ${selectedTestRun.id}`,
+                  selectedTestRun.id,
+                  'test_run'
+                );
 
                 setCurrentView('ticket-workspace');
                 setActiveTab('test-runs');
