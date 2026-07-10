@@ -92,10 +92,10 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
         const generatedCases = await generateTestCases(newTicket, criteria);
         console.log(`💾 Saving ${generatedCases.length} test cases to database...`);
 
-        // Save test cases to database with sequential IDs
+        // Save test cases to database with unique IDs
         for (let i = 0; i < generatedCases.length; i++) {
           const testCase = generatedCases[i];
-          const sequentialId = `TC-${String(i + 1).padStart(3, '0')}`;
+          const sequentialId = `TC-${Date.now()}-${i + 1}`;
           console.log(`[${i + 1}/${generatedCases.length}] Saving: ${testCase.title}`);
           console.log('Test case object:', testCase);
           const testCaseToSave = {
