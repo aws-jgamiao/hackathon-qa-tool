@@ -391,9 +391,7 @@ export default function TicketWorkspace({
             }}
             onMarkQAFailed={async (failed) => {
               try {
-                console.log('🔴 Marking test run as QA Failed:', failed);
-                const result = await testRunService.update(failed.id, failed);
-                console.log('✅ Test run saved:', result);
+                await testRunService.update(failed.id, failed);
                 const idx = testRuns.findIndex(tr => tr.id === failed.id);
                 if (idx >= 0) {
                   const newRuns = [...testRuns];
@@ -401,10 +399,8 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                   // Update ticket's QA failed count
                   const qaFailedCount = newRuns.filter(tr => tr.status === 'QA Failed').length;
-                  console.log('📊 QA Failed count calculated:', qaFailedCount, 'from runs:', newRuns.map(r => ({ id: r.id, status: r.status })));
                   const updated = { ...currentTicket, qa_failed_count: qaFailedCount };
                   await ticketService.update(currentTicket.id, updated);
-                  console.log('🎫 Ticket updated with QA failed count:', updated);
                   setCurrentTicket(updated);
                 }
                 setSelectedTestRun(failed);
@@ -497,9 +493,7 @@ export default function TicketWorkspace({
             }}
             onMarkQAFailed={async (failed) => {
               try {
-                console.log('🔴 Marking test run as QA Failed:', failed);
-                const result = await testRunService.update(failed.id, failed);
-                console.log('✅ Test run saved:', result);
+                await testRunService.update(failed.id, failed);
                 const idx = testRuns.findIndex(tr => tr.id === failed.id);
                 if (idx >= 0) {
                   const newRuns = [...testRuns];
@@ -507,10 +501,8 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
                   // Update ticket's QA failed count
                   const qaFailedCount = newRuns.filter(tr => tr.status === 'QA Failed').length;
-                  console.log('📊 QA Failed count calculated:', qaFailedCount, 'from runs:', newRuns.map(r => ({ id: r.id, status: r.status })));
                   const updated = { ...currentTicket, qa_failed_count: qaFailedCount };
                   await ticketService.update(currentTicket.id, updated);
-                  console.log('🎫 Ticket updated with QA failed count:', updated);
                   setCurrentTicket(updated);
                 }
                 setSelectedTestRun(failed);
