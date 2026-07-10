@@ -365,7 +365,7 @@ export default function AddEditTestCase({
             style={{
               marginBottom: '24px',
               padding: '16px',
-              background: '#f9f9f9',
+              background: 'var(--bg-tertiary)',
               borderRadius: '6px'
             }}
           >
@@ -382,8 +382,8 @@ export default function AddEditTestCase({
                           style={{
                             textAlign: 'left',
                             padding: '8px',
-                            background: 'white',
-                            border: '1px solid #e5e5e5',
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-color)',
                             position: 'relative'
                           }}
                         >
@@ -397,7 +397,8 @@ export default function AddEditTestCase({
                               border: 'none',
                               background: 'transparent',
                               width: '100%',
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              color: 'var(--text-primary)'
                             }}
                           />
                           <button
@@ -409,7 +410,7 @@ export default function AddEditTestCase({
                           </button>
                         </th>
                       ))}
-                      <th style={{ padding: '8px', background: 'white', border: '1px solid #e5e5e5' }}>
+                      <th style={{ padding: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
                         Actions
                       </th>
                     </tr>
@@ -420,7 +421,7 @@ export default function AddEditTestCase({
                         {row.map((cell, colIndex) => (
                           <td
                             key={colIndex}
-                            style={{ padding: '8px', border: '1px solid #e5e5e5' }}
+                            style={{ padding: '8px', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
                           >
                             <input
                               type="text"
@@ -437,7 +438,7 @@ export default function AddEditTestCase({
                             />
                           </td>
                         ))}
-                        <td style={{ padding: '8px', border: '1px solid #e5e5e5', textAlign: 'center' }}>
+                        <td style={{ padding: '8px', border: '1px solid var(--border-color)', textAlign: 'center', color: 'var(--text-primary)' }}>
                           <button
                             className="btn-icon"
                             onClick={() => deleteTableRow(tableIndex, rowIndex)}
