@@ -1,8 +1,3 @@
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
-
 const ANTHROPIC_API_KEY = process.env.VITE_ANTHROPIC_API_KEY;
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
