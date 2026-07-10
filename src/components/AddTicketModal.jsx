@@ -18,6 +18,8 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
   });
 
   const [acceptanceCriteria, setAcceptanceCriteria] = useState(['']);
+  const [acInputMode, setAcInputMode] = useState('single'); // 'single' or 'paste'
+  const [pasteAcText, setPasteAcText] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -40,6 +42,38 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
     const updated = [...acceptanceCriteria];
     updated[index] = value;
     setAcceptanceCriteria(updated);
+  };
+
+  const parsePasteText = () => {
+    const text = pasteAcText.trim();
+    if (!text) {
+      onShowToast('Please paste acceptance criteria text', 'error');
+      return;
+    }
+
+    // Split by "Scenario:" or by numbered lines (e.g., "7. ")
+    let criteria = [];
+
+    // Try splitting by "Scenario:"
+    if (text.includes('Scenario:')) {
+      const parts = text.split(/Scenario:/i).filter(p => p.trim());
+      criteria = parts.map(p => `Scenario: ${p.trim()}`);
+    } else if (/^\d+\./m.test(text)) {
+      // Split by numbered lines
+      criteria = text.split(/\n(?=\d+\.)/).filter(p => p.trim());
+    } else {
+      // Split by double line breaks
+      criteria = text.split(/\n\n+/).filter(p => p.trim());
+    }
+
+    if (criteria.length === 0) {
+      criteria = [text];
+    }
+
+    setAcceptanceCriteria(criteria);
+    setPasteAcText('');
+    setAcInputMode('single');
+    onShowToast(`Parsed ${criteria.length} acceptance criteria`, 'success');
   };
 
   const validateForm = () => {
@@ -232,54 +266,142 @@ export default function AddTicketModal({ onClose, onAdd, onShowToast }) {
         </div>
 
         <div className="form-group">
-          <label>Acceptance Criteria</label>
-          <div style={{ marginBottom: '12px' }}>
-            <table style={{ width: '100%' }}>
-              <tbody>
-                {acceptanceCriteria.map((criteria, index) => (
-                  <tr key={index} style={{ marginBottom: '8px' }}>
-                    <td style={{ padding: '8px 0', paddingRight: '8px' }}>
-                      <input
-                        type="text"
-                        value={criteria}
-                        onChange={(e) => handleCriteriaChange(index, e.target.value)}
-                        placeholder={`AC ${index + 1}: e.g., User can log in with valid credentials`}
-                        style={{
-                          width: '100%',
-                          padding: '8px 12px',
-                          border: '1px solid #e5e5e5',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </td>
-                    <td style={{ padding: '8px 0', width: '40px', textAlign: 'right' }}>
-                      {acceptanceCriteria.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCriteria(index)}
-                          style={{
-                            background: '#ffebee',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '6px 8px',
-                            cursor: 'pointer',
-                            color: '#c62828',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <label>Acceptance Criteria</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setAcInputMode('single')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  background: acInputMode === 'single' ? 'var(--accent-color)' : 'var(--bg-hover)',
+                  color: acInputMode === 'single' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Single AC
+              </button>
+              <button
+                type="button"
+                onClick={() => setAcInputMode('paste')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  background: acInputMode === 'paste' ? 'var(--accent-color)' : 'var(--bg-hover)',
+                  color: acInputMode === 'paste' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Paste Multiple
+              </button>
+            </div>
           </div>
+
+          {acInputMode === 'single' ? (
+            <div style={{ marginBottom: '12px' }}>
+              <table style={{ width: '100%' }}>
+                <tbody>
+                  {acceptanceCriteria.map((criteria, index) => (
+                    <tr key={index} style={{ marginBottom: '8px' }}>
+                      <td style={{ padding: '8px 0', paddingRight: '8px' }}>
+                        <input
+                          type="text"
+                          value={criteria}
+                          onChange={(e) => handleCriteriaChange(index, e.target.value)}
+                          placeholder={`AC ${index + 1}: e.g., User can log in with valid credentials`}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontFamily: 'inherit',
+                            background: 'var(--bg-secondary)',
+                            color: 'var(--text-primary)'
+                          }}
+                        />
+                      </td>
+                      <td style={{ padding: '8px 0', width: '40px', textAlign: 'right' }}>
+                        {acceptanceCriteria.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCriteria(index)}
+                            style={{
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px',
+                              padding: '6px 8px',
+                              cursor: 'pointer',
+                              color: '#c62828',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div style={{ marginBottom: '12px' }}>
+              <textarea
+                value={pasteAcText}
+                onChange={(e) => setPasteAcText(e.target.value)}
+                placeholder={`Paste your acceptance criteria here. It will auto-parse scenarios like:
+
+7. Scenario: Navigate to Clients
+ Given I am on the menu,
+When I tap the Clients Menu Item,
+Then I am taken to the Clients destination...
+
+Or numbered items:
+1. First criteria...
+2. Second criteria...
+
+Or separated by blank lines...`}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  minHeight: '150px',
+                  resize: 'vertical'
+                }}
+              />
+              <button
+                type="button"
+                onClick={parsePasteText}
+                style={{
+                  marginTop: '12px',
+                  padding: '8px 16px',
+                  background: 'var(--accent-color)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Parse & Add Criteria
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={handleAddCriteria}
