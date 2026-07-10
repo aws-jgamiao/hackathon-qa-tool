@@ -103,14 +103,21 @@ Structure:
     console.log('✅ API response received');
     const content = data.content[0].text;
 
-    // Extract JSON from response
-    let jsonStr = content;
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonStr = content.trim();
+
+    // Remove markdown code block wrapper if present
+    if (jsonStr.startsWith('```')) {
+      jsonStr = jsonStr.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    }
+
+    // Extract JSON array if wrapped in extra text
+    const jsonMatch = jsonStr.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       jsonStr = jsonMatch[0];
     }
 
-    const testCases = JSON.parse(jsonStr);
+    const testCases = JSON.parse(jsonStr.trim());
     console.log(`✨ Generated ${testCases.length} test cases`);
 
     res.json({ testCases });
