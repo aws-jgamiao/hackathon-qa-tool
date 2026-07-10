@@ -50,9 +50,8 @@ export default function ViewTestRun({
     const currentVersion = parseInt(testRun.version.substring(1));
     const nextVersion = `V${currentVersion + 1}`;
 
-    const runNumber = allTestRuns.length + 1;
     const retest = {
-      id: `TR-${String(runNumber).padStart(3, '0')}`,
+      id: `TR-${Date.now()}-${allTestRuns.length + 1}`,
       ticket_id: testRun.ticket_id,
       test_case_id: testRun.test_case_id,
       platform: testRun.platform,

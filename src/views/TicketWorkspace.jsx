@@ -285,9 +285,9 @@ export default function TicketWorkspace({
 
                   for (let idx = 0; idx < platforms.length; idx++) {
                     const platform = platforms[idx];
-                    const runNumber = newRuns.length + idx + 1;
+                    // Generate unique ID using timestamp to avoid duplicates
                     const newRun = {
-                      id: `TR-${String(runNumber).padStart(3, '0')}`,
+                      id: `TR-${Date.now()}-${idx + 1}`,
                       ticket_id: currentTicket.id,
                       test_case_id: approved.id,
                       platform: platform,
