@@ -25,6 +25,7 @@ export default function TicketWorkspace({
   appState,
   setAppState
 }) {
+  const [currentTicket, setCurrentTicket] = useState(ticket);
   const [activeTab, setActiveTab] = useState('test-cases');
   const [testCases, setTestCases] = useState([]);
   const [testRuns, setTestRuns] = useState([]);
@@ -32,17 +33,21 @@ export default function TicketWorkspace({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (ticket) {
+    setCurrentTicket(ticket);
+  }, [ticket]);
+
+  useEffect(() => {
+    if (currentTicket) {
       loadTestCases();
       loadTestRuns();
       loadActivityLogs();
     }
-  }, [ticket]);
+  }, [currentTicket]);
 
   const loadTestCases = async () => {
     try {
       setLoading(true);
-      const data = await testCaseService.getByTicketId(ticket.id);
+      const data = await testCaseService.getByTicketId(currentTicket.id);
       console.log('📥 Loaded test cases:', data);
       setTestCases(data || []);
     } catch (err) {
@@ -55,7 +60,7 @@ export default function TicketWorkspace({
 
   const loadTestRuns = async () => {
     try {
-      const data = await testRunService.getByTicketId(ticket.id);
+      const data = await testRunService.getByTicketId(currentTicket.id);
       console.log('📥 Loaded test runs:', data);
       setTestRuns(data || []);
     } catch (err) {
@@ -66,7 +71,7 @@ export default function TicketWorkspace({
 
   const loadActivityLogs = async () => {
     try {
-      const data = await activityLogService.getByTicketId(ticket.id);
+      const data = await activityLogService.getByTicketId(currentTicket.id);
       setActivityLogs(data || []);
     } catch (err) {
       console.error('Failed to load activity logs:', err);
@@ -80,7 +85,7 @@ export default function TicketWorkspace({
 
   const handleStatusChange = async (newStatus) => {
     try {
-      const updatedTicket = await ticketService.update(ticket.id, {
+      const updatedTicket = await ticketService.update(currentTicket.id, {
         status: newStatus,
         updated_at: new Date().toISOString()
       });
@@ -109,7 +114,7 @@ export default function TicketWorkspace({
       case 'ticket-workspace':
         return (
           <>
-            <TicketHeader ticket={ticket} onStatusChange={handleStatusChange} />
+            <TicketHeader ticket={currentTicket} onStatusChange={handleStatusChange} />
             <div className="tabs">
               <button
                 className={`tab ${activeTab === 'test-cases' ? 'active' : ''}`}
@@ -148,7 +153,7 @@ export default function TicketWorkspace({
                     setTestRuns(newRuns);
 
                     // Update ticket test run count
-                    await ticketService.update(ticket.id, {
+                    await ticketService.update(currentTicket.id, {
                       test_run_count: newRuns.length,
                       updated_at: new Date().toISOString()
                     });
@@ -187,14 +192,14 @@ export default function TicketWorkspace({
                 setTestCases(updated);
 
                 // Update ticket test case count
-                await ticketService.update(ticket.id, {
+                await ticketService.update(currentTicket.id, {
                   test_case_count: updated.length,
                   updated_at: new Date().toISOString()
                 });
 
                 // Create activity log
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_case_created',
                   `Test case created: ${testCase.title}`,
                   sequentialId,
@@ -219,15 +224,24 @@ export default function TicketWorkspace({
           <AddEditTestCase
             ticket={ticket}
             testCase={selectedTestCase}
-            onSave={(updated) => {
-              const idx = testCases.findIndex(tc => tc.id === updated.id);
-              if (idx >= 0) {
-                const newCases = [...testCases];
-                newCases[idx] = updated;
-                setTestCases(newCases);
+            onSave={async (updated) => {
+              try {
+                // Save to database
+                await testCaseService.update(updated.id, updated);
+
+                // Update local state
+                const idx = testCases.findIndex(tc => tc.id === updated.id);
+                if (idx >= 0) {
+                  const newCases = [...testCases];
+                  newCases[idx] = updated;
+                  setTestCases(newCases);
+                }
+                setCurrentView('view-test-case');
+                onShowToast('Test case updated successfully', 'success');
+              } catch (err) {
+                console.error('Failed to update test case:', err);
+                onShowToast('Failed to update test case: ' + err.message, 'error');
               }
-              setCurrentView('view-test-case');
-              onShowToast('Test case updated successfully', 'success');
             }}
             onCancel={() => setCurrentView('view-test-case')}
             onShowToast={onShowToast}
@@ -266,7 +280,7 @@ export default function TicketWorkspace({
                   setTestCases(newCases);
 
                   // Create test runs for each platform
-                  const platforms = ticket.platform.split(',').map(p => p.trim());
+                  const platforms = currentTicket.platform.split(',').map(p => p.trim());
                   const newRuns = [...testRuns];
 
                   for (let idx = 0; idx < platforms.length; idx++) {
@@ -274,7 +288,7 @@ export default function TicketWorkspace({
                     const runNumber = newRuns.length + idx + 1;
                     const newRun = {
                       id: `TR-${String(runNumber).padStart(3, '0')}`,
-                      ticket_id: ticket.id,
+                      ticket_id: currentTicket.id,
                       test_case_id: approved.id,
                       platform: platform,
                       version: 'V1',
@@ -291,7 +305,7 @@ export default function TicketWorkspace({
                   setTestRuns(newRuns);
 
                   // Update ticket test run count
-                  await ticketService.update(ticket.id, {
+                  await ticketService.update(currentTicket.id, {
                     test_run_count: newRuns.length,
                     updated_at: new Date().toISOString()
                   });
@@ -325,14 +339,14 @@ export default function TicketWorkspace({
                 setTestCases(newCases);
 
                 // Update ticket test case count
-                await ticketService.update(ticket.id, {
+                await ticketService.update(currentTicket.id, {
                   test_case_count: newCases.length,
                   updated_at: new Date().toISOString()
                 });
 
                 // Create activity log
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_case_deleted',
                   `Test case deleted: ${deletedCaseTitle}`,
                   selectedTestCase.id,
@@ -377,17 +391,26 @@ export default function TicketWorkspace({
             }}
             onMarkQAFailed={async (failed) => {
               try {
-                await testRunService.update(failed.id, failed);
+                console.log('🔴 Marking test run as QA Failed:', failed);
+                const result = await testRunService.update(failed.id, failed);
+                console.log('✅ Test run saved:', result);
                 const idx = testRuns.findIndex(tr => tr.id === failed.id);
                 if (idx >= 0) {
                   const newRuns = [...testRuns];
                   newRuns[idx] = failed;
                   setTestRuns(newRuns);
+                  // Update ticket's QA failed count
+                  const qaFailedCount = newRuns.filter(tr => tr.status === 'QA Failed').length;
+                  console.log('📊 QA Failed count calculated:', qaFailedCount, 'from runs:', newRuns.map(r => ({ id: r.id, status: r.status })));
+                  const updated = { ...currentTicket, qa_failed_count: qaFailedCount };
+                  await ticketService.update(currentTicket.id, updated);
+                  console.log('🎫 Ticket updated with QA failed count:', updated);
+                  setCurrentTicket(updated);
                 }
                 setSelectedTestRun(failed);
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_failed',
                   `Test run ${failed.id} marked as QA Failed (Attempt ${failed.qa_failed_count})`,
                   failed.id,
@@ -413,7 +436,7 @@ export default function TicketWorkspace({
                 setSelectedTestRun(approved);
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_passed',
                   `Test run ${approved.id} marked as Passed`,
                   approved.id,
@@ -450,14 +473,14 @@ export default function TicketWorkspace({
                 setTestRuns(newRuns);
 
                 // Update ticket test run count
-                await ticketService.update(ticket.id, {
+                await ticketService.update(currentTicket.id, {
                   test_run_count: newRuns.length,
                   updated_at: new Date().toISOString()
                 });
 
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_created',
                   `Retest run ${saved.id} created (${saved.version})`,
                   saved.id,
@@ -474,17 +497,26 @@ export default function TicketWorkspace({
             }}
             onMarkQAFailed={async (failed) => {
               try {
-                await testRunService.update(failed.id, failed);
+                console.log('🔴 Marking test run as QA Failed:', failed);
+                const result = await testRunService.update(failed.id, failed);
+                console.log('✅ Test run saved:', result);
                 const idx = testRuns.findIndex(tr => tr.id === failed.id);
                 if (idx >= 0) {
                   const newRuns = [...testRuns];
                   newRuns[idx] = failed;
                   setTestRuns(newRuns);
+                  // Update ticket's QA failed count
+                  const qaFailedCount = newRuns.filter(tr => tr.status === 'QA Failed').length;
+                  console.log('📊 QA Failed count calculated:', qaFailedCount, 'from runs:', newRuns.map(r => ({ id: r.id, status: r.status })));
+                  const updated = { ...currentTicket, qa_failed_count: qaFailedCount };
+                  await ticketService.update(currentTicket.id, updated);
+                  console.log('🎫 Ticket updated with QA failed count:', updated);
+                  setCurrentTicket(updated);
                 }
                 setSelectedTestRun(failed);
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_failed',
                   `Test run ${failed.id} marked as QA Failed (Attempt ${failed.qa_failed_count})`,
                   failed.id,
@@ -530,7 +562,7 @@ export default function TicketWorkspace({
                 setSelectedTestRun(approved);
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_passed',
                   `Test run ${approved.id} marked as Passed`,
                   approved.id,
@@ -551,14 +583,14 @@ export default function TicketWorkspace({
                 setTestRuns(newRuns);
 
                 // Update ticket test run count
-                await ticketService.update(ticket.id, {
+                await ticketService.update(currentTicket.id, {
                   test_run_count: newRuns.length,
                   updated_at: new Date().toISOString()
                 });
 
                 // Log activity
                 await activityLogService.create(
-                  ticket.id,
+                  currentTicket.id,
                   'test_run_deleted',
                   `Test run deleted: ${selectedTestRun.id}`,
                   selectedTestRun.id,

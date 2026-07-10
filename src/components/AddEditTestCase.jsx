@@ -46,8 +46,6 @@ export default function AddEditTestCase({
 
   const [stepInput, setStepInput] = useState('');
   const [customTableName, setCustomTableName] = useState('');
-  const [activeTableIndex, setActiveTableIndex] = useState(null);
-  const [editingCellId, setEditingCellId] = useState(null);
 
   const handleFormChange = (field, value) => {
     setForm({ ...form, [field]: value });
@@ -83,7 +81,6 @@ export default function AddEditTestCase({
         customTables: [...form.customTables, newTable]
       });
       setCustomTableName('');
-      setActiveTableIndex(form.customTables.length);
     }
   };
 
@@ -266,7 +263,7 @@ export default function AddEditTestCase({
             type="text"
             value={stepInput}
             onChange={(e) => setStepInput(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 addStep();
               }
@@ -372,84 +369,125 @@ export default function AddEditTestCase({
             <h4 style={{ marginBottom: '12px' }}>{table.name}</h4>
 
             {table.columns.length > 0 && (
-              <div style={{ marginBottom: '16px', overflowX: 'auto' }}>
-                <table style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      {table.columns.map((col, colIndex) => (
-                        <th
-                          key={colIndex}
-                          style={{
-                            textAlign: 'left',
-                            padding: '8px',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border-color)',
-                            position: 'relative'
-                          }}
-                        >
-                          <input
-                            type="text"
-                            value={col}
-                            onChange={(e) =>
-                              renameTableColumn(tableIndex, colIndex, e.target.value)
-                            }
-                            style={{
-                              border: 'none',
-                              background: 'transparent',
-                              width: '100%',
-                              fontSize: '14px',
-                              color: 'var(--text-primary)'
-                            }}
-                          />
-                          <button
-                            className="btn-icon"
-                            onClick={() => deleteTableColumn(tableIndex, colIndex)}
-                            style={{ position: 'absolute', top: '2px', right: '2px' }}
-                          >
-                            <X size={14} />
-                          </button>
-                        </th>
+              <div style={{ marginBottom: '16px', display: 'flex', gap: '0', borderRadius: '6px', overflow: 'hidden' }}>
+                <div style={{ flex: 1, overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 'fit-content' }}>
+                    <colgroup>
+                      {table.columns.map((_, i) => (
+                        <col key={`col-${i}`} style={{ width: '150px' }} />
                       ))}
-                      <th style={{ padding: '8px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {table.rows.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, colIndex) => (
-                          <td
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        {table.columns.map((col, colIndex) => (
+                          <th
                             key={colIndex}
-                            style={{ padding: '8px', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px',
+                              background: 'var(--bg-secondary)',
+                              border: '1px solid var(--border-color)',
+                              position: 'relative',
+                              width: '150px',
+                              height: '40px',
+                              verticalAlign: 'middle'
+                            }}
                           >
                             <input
                               type="text"
-                              value={cell}
+                              value={col}
                               onChange={(e) =>
-                                updateTableCell(tableIndex, rowIndex, colIndex, e.target.value)
+                                renameTableColumn(tableIndex, colIndex, e.target.value)
                               }
                               style={{
                                 border: 'none',
                                 background: 'transparent',
-                                width: '100%',
-                                fontSize: '14px'
+                                width: 'calc(100% - 20px)',
+                                fontSize: '14px',
+                                color: 'var(--text-primary)'
                               }}
                             />
-                          </td>
+                            <button
+                              className="btn-icon"
+                              onClick={() => deleteTableColumn(tableIndex, colIndex)}
+                              style={{ position: 'absolute', top: '2px', right: '2px' }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </th>
                         ))}
-                        <td style={{ padding: '8px', border: '1px solid var(--border-color)', textAlign: 'center', color: 'var(--text-primary)' }}>
-                          <button
-                            className="btn-icon"
-                            onClick={() => deleteTableRow(tableIndex, rowIndex)}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {table.rows.map((row, rowIndex) => (
+                        <tr key={rowIndex}>
+                          {row.map((cell, colIndex) => (
+                            <td
+                              key={colIndex}
+                              style={{ padding: '8px', border: '1px solid var(--border-color)', color: 'var(--text-primary)', width: '150px', height: '40px', verticalAlign: 'top' }}
+                            >
+                              <input
+                                type="text"
+                                value={cell}
+                                onChange={(e) =>
+                                  updateTableCell(tableIndex, rowIndex, colIndex, e.target.value)
+                                }
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  width: '100%',
+                                  fontSize: '14px'
+                                }}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '80px' }}>
+                  <div
+                    style={{
+                      padding: '8px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
+                      textAlign: 'center',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      color: 'var(--text-primary)',
+                      height: '40px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    Actions
+                  </div>
+                  {table.rows.map((_, rowIndex) => (
+                    <div
+                      key={rowIndex}
+                      style={{
+                        padding: '8px',
+                        border: '1px solid var(--border-color)',
+                        textAlign: 'center',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: 'var(--text-primary)',
+                        height: '40px',
+                        borderTop: 'none'
+                      }}
+                    >
+                      <button
+                        className="btn-icon"
+                        onClick={() => deleteTableRow(tableIndex, rowIndex)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

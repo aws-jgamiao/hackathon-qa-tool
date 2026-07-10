@@ -132,7 +132,7 @@ export default function Dashboard({ onSelectTicket, onShowToast, refreshTrigger 
 
   if (error) {
     return (
-      <div className="card" style={{ background: '#ffebee', borderColor: '#c62828' }}>
+      <div className="card" style={{ background: 'var(--bg-tertiary)', borderColor: '#c62828', borderLeft: '4px solid #c62828' }}>
         <h2 style={{ color: '#c62828' }}>Error Loading Tickets</h2>
         <p>{error}</p>
         <p style={{ fontSize: '14px', color: '#666', marginTop: '12px' }}>

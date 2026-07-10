@@ -124,7 +124,7 @@ export default function GenerateTestCasesModal({ ticket, onClose, onAddTestCases
         </div>
 
         {error && (
-          <div className="card" style={{ background: '#ffebee', borderColor: '#c62828', marginBottom: '16px' }}>
+          <div className="card" style={{ background: 'var(--bg-tertiary)', borderColor: '#c62828', borderLeft: '4px solid #c62828', marginBottom: '16px' }}>
             <p style={{ color: '#c62828', margin: 0 }}>{error}</p>
           </div>
         )}

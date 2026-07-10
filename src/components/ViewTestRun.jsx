@@ -279,7 +279,7 @@ export default function ViewTestRun({
         {testRun.status === 'QA Failed' && (
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-color)' }}>
             <h4>QA Failed Cycle Tracking</h4>
-            <div style={{ padding: '16px', background: '#fff3e0', borderRadius: '6px', color: 'var(--text-primary)' }}>
+            <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderLeft: '4px solid #f57c00', borderRadius: '6px', color: 'var(--text-primary)' }}>
               <p style={{ marginBottom: '8px' }}>
                 <strong>Current Cycle:</strong> {testRun.version} - QA Failed
               </p>
@@ -300,12 +300,12 @@ export default function ViewTestRun({
           </button>
 
           {testRun.status === 'Passed' && (
-            <div style={{ padding: '12px', background: '#e8f5e9', borderRadius: '6px', border: '1px solid #2e7d32', color: '#2e7d32' }}>
+            <div style={{ padding: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', borderLeft: '4px solid #2e7d32', color: '#2e7d32' }}>
               <strong>✓ Marked as Passed</strong>
             </div>
           )}
           {testRun.status === 'QA Failed' && (
-            <div style={{ padding: '12px', background: '#ffebee', borderRadius: '6px', border: '1px solid #c62828', color: '#c62828' }}>
+            <div style={{ padding: '12px', background: 'var(--bg-tertiary)', borderRadius: '6px', borderLeft: '4px solid #c62828', color: '#c62828' }}>
               <strong>✕ Marked as QA Failed</strong>
             </div>
           )}
