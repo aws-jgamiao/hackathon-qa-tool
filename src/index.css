@@ -276,6 +276,35 @@ tbody tr:hover {
   color: var(--text-primary);
 }
 
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+textarea,
+select {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Ensure all text display areas have proper dark mode colors */
+p {
+  color: var(--text-primary);
+}
+
+pre, code {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Fix readonly/display text areas */
+[readonly],
+[disabled] {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;

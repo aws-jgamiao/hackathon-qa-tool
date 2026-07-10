@@ -64,9 +64,9 @@ export default function GenerateTestCasesModal({ ticket, onClose, onAddTestCases
                   key={tc.id}
                   className="card"
                   style={{
-                    background: selectedCases.has(tc.id) ? '#f0f7ff' : '#f9f9f9',
+                    background: selectedCases.has(tc.id) ? 'var(--badge-bg)' : 'var(--bg-tertiary)',
                     cursor: 'pointer',
-                    borderColor: selectedCases.has(tc.id) ? '#0066cc' : '#e5e5e5'
+                    borderColor: selectedCases.has(tc.id) ? 'var(--accent-color)' : 'var(--border-color)'
                   }}
                   onClick={() => toggleCase(tc.id)}
                 >
@@ -135,12 +135,12 @@ export default function GenerateTestCasesModal({ ticket, onClose, onAddTestCases
             AI-Powered Test Case Generation
           </h3>
 
-          <div className="card" style={{ background: '#f0f7ff', borderColor: '#0066cc' }}>
+          <div className="card" style={{ background: 'var(--badge-bg)', borderColor: 'var(--accent-color)' }}>
             <p style={{ marginBottom: '12px', fontSize: '14px' }}>
               Claude will analyze your ticket and generate comprehensive test cases covering:
             </p>
 
-            <ul style={{ fontSize: '14px', lineHeight: '1.8', marginLeft: '20px', color: '#333' }}>
+            <ul style={{ fontSize: '14px', lineHeight: '1.8', marginLeft: '20px', color: 'var(--text-primary)' }}>
               <li>Happy path scenarios</li>
               <li>Edge cases and error handling</li>
               <li>User role-based scenarios</li>

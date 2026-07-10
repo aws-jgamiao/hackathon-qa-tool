@@ -205,7 +205,7 @@ export default function AddEditTestCase({
             type="text"
             value={ticket.id}
             readOnly
-            style={{ backgroundColor: '#f5f5f5' }}
+            style={{ backgroundColor: 'var(--bg-tertiary)' }}
           />
         </div>
         <div className="form-group">
@@ -214,7 +214,7 @@ export default function AddEditTestCase({
             type="text"
             value={ticket.name}
             readOnly
-            style={{ backgroundColor: '#f5f5f5' }}
+            style={{ backgroundColor: 'var(--bg-tertiary)' }}
           />
         </div>
       </div>
@@ -222,7 +222,7 @@ export default function AddEditTestCase({
       <div className="form-row">
         <div className="form-group">
           <label>Test Case #</label>
-          <input type="text" value={form.id} readOnly style={{ backgroundColor: '#f5f5f5' }} />
+          <input type="text" value={form.id} readOnly style={{ backgroundColor: 'var(--bg-tertiary)' }} />
         </div>
         <div className="form-group">
           <label>Component</label>
@@ -287,9 +287,10 @@ export default function AddEditTestCase({
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '8px 12px',
-                background: '#f9f9f9',
+                background: 'var(--bg-tertiary)',
                 borderRadius: '4px',
-                fontSize: '14px'
+                fontSize: '14px',
+                color: 'var(--text-primary)'
               }}
             >
               <span>
@@ -342,7 +343,7 @@ export default function AddEditTestCase({
       </div>
 
       {/* Custom Tables */}
-      <div style={{ marginTop: '32px', borderTop: '1px solid #e5e5e5', paddingTop: '24px' }}>
+      <div style={{ marginTop: '32px', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
         <h3>Custom Tables</h3>
 
         <div style={{ marginBottom: '20px', display: 'flex', gap: '8px' }}>
